@@ -2,6 +2,7 @@
 import { Canvas } from '@react-three/fiber';
 import ParticleField from './ParticleField';
 import SpaceObjects from './SpaceObjects';
+import NebulaCloud from './NebulaCloud';
 import type { Memory } from '@/app/actions';
 
 // Mencegah console.error / warning bawaan dari Three.js versi terbaru yang belum sinkron dengan R3F
@@ -20,6 +21,8 @@ export default function CanvasScene({ memories = [] }: { memories?: Memory[] }) 
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -10, pointerEvents: 'none' }}>
             <Canvas camera={{ position: [0, 0, 5], fov: 60 }} dpr={[1, 1.5]} gl={{ powerPreference: "high-performance", antialias: false, alpha: true }}>
+                {/* Nebula renders first — deepest background layer */}
+                <NebulaCloud />
                 <ParticleField />
                 <SpaceObjects memories={memories} />
             </Canvas>
