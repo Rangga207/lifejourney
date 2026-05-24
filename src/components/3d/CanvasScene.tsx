@@ -16,12 +16,12 @@ if (typeof console !== 'undefined') {
     };
 }
 
-export default function CanvasScene({ memories = [] }: { memories?: Memory[] }) {
+export default function CanvasScene({ memories = [], onSelectMemory }: { memories?: Memory[], onSelectMemory?: (memory: Memory) => void }) {
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -10, pointerEvents: 'none' }}>
-            <Canvas camera={{ position: [0, 0, 5], fov: 60 }} dpr={[1, 1.5]} gl={{ powerPreference: "high-performance", antialias: false, alpha: true }}>
+            <Canvas style={{ pointerEvents: 'auto' }} camera={{ position: [0, 0, 5], fov: 60 }} dpr={[1, 1.5]} gl={{ powerPreference: "high-performance", antialias: false, alpha: true }}>
                 <ParticleField />
-                <SpaceObjects memories={memories} />
+                <SpaceObjects memories={memories} onSelectMemory={onSelectMemory} />
             </Canvas>
         </div>
     );

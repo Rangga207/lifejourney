@@ -9,6 +9,7 @@ import AudioPlayer from '@/components/ui/AudioPlayer';
 import { getMemories, addMemory, removeMemory, updateMemory, type Memory } from '@/app/actions';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { LoginOverlay } from '@/components/ui/LoginOverlay';
+import { MemoryModal3D } from '@/components/ui/MemoryModal3D';
 
 // Dynamically import the 3D Canvas to avoid SSR issues
 const CanvasScene = dynamic(() => import('@/components/3d/CanvasScene'), {
@@ -24,6 +25,12 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'memories' | 'gallery'>('memories');
   const [fullGalleryImage, setFullGalleryImage] = useState<{ url: string, memoryId: string, imageIndex: number } | null>(null);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [selectedMemoryFrom3D, setSelectedMemoryFrom3D] = useState<Memory | null>(null);
+
+  const activeMemory3D = useMemo(() => {
+    if (!selectedMemoryFrom3D) return null;
+    return memories.find(m => m.id === selectedMemoryFrom3D.id) || selectedMemoryFrom3D;
+  }, [memories, selectedMemoryFrom3D]);
 
   const filteredMemories = useMemo(() => {
     return memories.filter(m =>
@@ -198,7 +205,7 @@ export default function HomePage() {
     <main className="relative min-h-[100dvh]">
       {/* 3D Background */}
       <ErrorBoundary>
-        <CanvasScene memories={memories} />
+        <CanvasScene memories={memories} onSelectMemory={setSelectedMemoryFrom3D} />
       </ErrorBoundary>
 
       {/* Radial gradient vignette overlay */}
@@ -398,6 +405,18 @@ export default function HomePage() {
 
           {/* Music Player */}
           <AudioPlayer />
+
+          {/* 3D Constellation Clicked Memory Modal */}
+          <AnimatePresence>
+            {activeMemory3D && (
+              <MemoryModal3D
+                memory={activeMemory3D}
+                onClose={() => setSelectedMemoryFrom3D(null)}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+              />
+            )}
+          </AnimatePresence>
 
           {/* Full Size Gallery Image Modal */}
           <AnimatePresence>
