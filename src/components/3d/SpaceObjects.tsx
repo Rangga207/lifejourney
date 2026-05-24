@@ -1,7 +1,7 @@
 'use client';
-import { useRef, Suspense, useState, useMemo, useEffect } from 'react';
+import { useRef, Suspense } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Sphere, useTexture, Html } from '@react-three/drei';
+import { Sphere, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Memory } from '@/app/actions';
 
@@ -101,150 +101,12 @@ function OrbitingMercury() {
     );
 }
 
-function MemoryStar({ 
-    memory, 
-    position, 
-    onSelect 
-}: { 
-    memory: Memory; 
-    position: THREE.Vector3; 
-    onSelect?: (memory: Memory) => void 
-}) {
-    const [hovered, setHovered] = useState(false);
-    const starRef = useRef<THREE.Mesh>(null);
-
-    // Subtle cosmic breathing animation for star
-    useFrame((state) => {
-        if (starRef.current) {
-            const time = state.clock.getElapsedTime();
-            const pulse = 1 + Math.sin(time * 2.0 + position.x * 10) * 0.15;
-            starRef.current.scale.set(pulse, pulse, pulse);
-        }
-    });
-
-    return (
-        <group position={position}>
-            {/* Clickable Area (Larger Sphere for easy raycast selection at depth) */}
-            <mesh 
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if (onSelect) onSelect(memory);
-                }}
-                onPointerOver={(e) => {
-                    e.stopPropagation();
-                    setHovered(true);
-                    document.body.style.cursor = 'pointer';
-                }}
-                onPointerOut={(e) => {
-                    e.stopPropagation();
-                    setHovered(false);
-                    document.body.style.cursor = 'default';
-                }}
-            >
-                <sphereGeometry args={[0.5, 16, 16]} />
-                <meshBasicMaterial visible={false} />
-            </mesh>
-
-            {/* Glowing Core (Extremely delicate and elegant) */}
-            <mesh ref={starRef}>
-                <sphereGeometry args={[0.08, 16, 16]} />
-                <meshBasicMaterial 
-                    color={hovered ? '#ffffff' : '#38bdf8'} 
-                    toneMapped={false}
-                />
-            </mesh>
-
-            {/* Glowing Halo (Soft and ethereal) */}
-            <mesh scale={[3.0, 3.0, 3.0]}>
-                <sphereGeometry args={[0.08, 16, 16]} />
-                <meshBasicMaterial 
-                    color={hovered ? '#7dd3fc' : '#0ea5e9'} 
-                    transparent 
-                    opacity={hovered ? 0.35 : 0.15} 
-                    blending={THREE.AdditiveBlending}
-                    depthWrite={false}
-                />
-            </mesh>
-
-            {/* Tooltip */}
-            {hovered && (
-                <Html 
-                    distanceFactor={8} // Scaled for deep depth (Z=-10)
-                    position={[0, 0.35, 0]} 
-                    center
-                    style={{ pointerEvents: 'none' }}
-                >
-                    <div className="bg-slate-950/95 border border-sky-500/30 px-3 py-1.5 rounded-xl backdrop-blur-md text-[10px] text-white font-medium whitespace-nowrap shadow-[0_0_20px_rgba(56,189,248,0.3)] flex items-center gap-1.5 select-none transition-all duration-300">
-                        <span>{memory.emoji || '💌'}</span>
-                        <span className="font-sans font-light tracking-wide">{memory.title}</span>
-                    </div>
-                </Html>
-            )}
-        </group>
-    );
-}
-
-export default function SpaceObjects({ memories = [], onSelectMemory }: { memories?: Memory[], onSelectMemory?: (memory: Memory) => void }) {
+export default function SpaceObjects({ memories = [] }: { memories?: Memory[] }) {
     const { viewport } = useThree();
     const shootingStarRef = useRef<THREE.Group>(null);
     const starMatRef = useRef<THREE.MeshBasicMaterial>(null);
     const cometState = useRef({ life: 0, active: false });
     const isMobile = viewport.width < viewport.height;
-
-    // Filter memories that are not hidden and not gallery-only to render as stars
-    const activeMemories = useMemo(() => {
-        return memories.filter(m => !m.isGalleryOnly && !m.hideFromGallery);
-    }, [memories]);
-
-    // Position of each star: wide margin distribution to keep central cards completely clear and readable
-    const starPositions = useMemo(() => {
-        return activeMemories.map((_, idx) => {
-            // Seeded values so they are stable
-            const seed = idx * 1.5;
-            const sin = Math.sin(seed);
-            const cos = Math.cos(seed);
-            
-            // On desktop, push stars to the margins (left/right) to keep center content readable
-            // On mobile, spread them wider in height (top/bottom)
-            let x = sin * (isMobile ? 3.0 : 7.0);
-            if (!isMobile && Math.abs(x) < 2.5) {
-                x = x >= 0 ? x + 2.5 : x - 2.5; // Push away from central cards columns
-            }
-            
-            const y = cos * (isMobile ? 4.5 : 3.5);
-            const z = -10 - (idx * 0.6); // Deep in background so they are small and delicate
-            
-            return new THREE.Vector3(x, y, z);
-        });
-    }, [activeMemories, isMobile]);
-
-    // Native Three.js line connecting the stars in a chronological chain
-    const lineMesh = useMemo(() => {
-        if (starPositions.length < 2) return null;
-        const lineGeometry = new THREE.BufferGeometry().setFromPoints(starPositions);
-        const lineMaterial = new THREE.LineBasicMaterial({
-            color: new THREE.Color("#0ea5e9"),
-            transparent: true,
-            opacity: 0.25,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending
-        });
-        return new THREE.Line(lineGeometry, lineMaterial);
-    }, [starPositions]);
-
-    // Cleanup lineMesh resources to prevent memory leaks
-    useEffect(() => {
-        return () => {
-            if (lineMesh) {
-                lineMesh.geometry.dispose();
-                if (Array.isArray(lineMesh.material)) {
-                    lineMesh.material.forEach(m => m.dispose());
-                } else {
-                    lineMesh.material.dispose();
-                }
-            }
-        };
-    }, [lineMesh]);
 
     // Shooting star animation
     useFrame((state, delta) => {
@@ -317,19 +179,6 @@ export default function SpaceObjects({ memories = [], onSelectMemory }: { memori
                     <meshBasicMaterial ref={starMatRef} color="#ffffff" transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} />
                 </mesh>
             </group>
-
-            {/* ─── NEW: Memory Constellation Lines ─── */}
-            {lineMesh && <primitive object={lineMesh} />}
-
-            {/* ─── NEW: Memory Glowing Stars ─── */}
-            {activeMemories.map((memory, idx) => (
-                <MemoryStar 
-                    key={memory.id} 
-                    memory={memory} 
-                    position={starPositions[idx]} 
-                    onSelect={onSelectMemory} 
-                />
-            ))}
         </group>
     );
 }
