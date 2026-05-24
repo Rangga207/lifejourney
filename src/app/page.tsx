@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Image as ImageIcon, LayoutGrid, Sparkles, CalendarDays, Heart, Clock, X, Trash2, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Image as ImageIcon, LayoutGrid, X, Trash2, Upload, ChevronLeft, ChevronRight, ArrowUpDown, AlignLeft } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { MemoryCard } from '@/components/ui/MemoryCard';
 import AddMemoryModal from '@/components/ui/AddMemoryModal';
@@ -24,15 +24,18 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'memories' | 'gallery'>('memories');
   const [fullGalleryImage, setFullGalleryImage] = useState<{ url: string, memoryId: string, imageIndex: number } | null>(null);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [notesView, setNotesView] = useState<'grid' | 'timeline'>('grid');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   const filteredMemories = useMemo(() => {
-    return memories.filter(m =>
+    const filtered = memories.filter(m =>
       !m.isGalleryOnly &&
       (m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         m.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
         m.date.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-  }, [memories, searchQuery]);
+    return sortOrder === 'oldest' ? [...filtered].reverse() : filtered;
+  }, [memories, searchQuery, sortOrder]);
 
   const allImages = useMemo(() => {
     const sourceMemories = searchQuery
@@ -259,25 +262,68 @@ export default function HomePage() {
           </header>
 
           {/* Navigation & Search */}
-          <section className="relative z-10 px-4 max-w-4xl mx-auto mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 w-full sm:w-auto">
-              <button
-                onClick={() => setActiveTab('memories')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'memories' ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:text-white/80'
-                  }`}
-              >
-                <LayoutGrid size={16} /> Notes
-              </button>
-              <button
-                onClick={() => setActiveTab('gallery')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'gallery' ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:text-white/80'
-                  }`}
-              >
-                <ImageIcon size={16} /> Life Updates
-              </button>
+          <section className="relative z-10 px-4 max-w-4xl mx-auto mb-8 flex flex-col gap-3">
+            {/* Tab switcher row */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+                <button
+                  onClick={() => setActiveTab('memories')}
+                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'memories' ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+                >
+                  <LayoutGrid size={15} /> Notes
+                </button>
+                <button
+                  onClick={() => setActiveTab('gallery')}
+                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'gallery' ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+                >
+                  <ImageIcon size={15} /> Life Updates
+                </button>
+              </div>
+
+              {/* Notes-only controls: view toggle + sort */}
+              <AnimatePresence>
+                {activeTab === 'memories' && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-2"
+                  >
+                    {/* View toggle: Grid / Timeline */}
+                    <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+                      <button
+                        onClick={() => setNotesView('grid')}
+                        title="Grid view"
+                        className={`p-2 rounded-lg transition-all ${notesView === 'grid' ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/70'}`}
+                      >
+                        <LayoutGrid size={14} />
+                      </button>
+                      <button
+                        onClick={() => setNotesView('timeline')}
+                        title="Timeline view"
+                        className={`p-2 rounded-lg transition-all ${notesView === 'timeline' ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/70'}`}
+                      >
+                        <AlignLeft size={14} />
+                      </button>
+                    </div>
+
+                    {/* Sort toggle */}
+                    <button
+                      onClick={() => setSortOrder(s => s === 'newest' ? 'oldest' : 'newest')}
+                      title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
+                      className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white/40 hover:text-white/80 hover:bg-white/10 transition-all text-xs font-medium"
+                    >
+                      <ArrowUpDown size={12} />
+                      <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            <div className="relative w-full sm:w-64 group">
+            {/* Search bar - full width row */}
+            <div className="relative w-full group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors">
                 <Search size={16} />
               </div>
@@ -296,7 +342,7 @@ export default function HomePage() {
             <AnimatePresence mode="wait">
               {activeTab === 'memories' ? (
                 <motion.div
-                  key="memories-view"
+                  key={`memories-${notesView}-${sortOrder}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -313,7 +359,8 @@ export default function HomePage() {
                         {searchQuery ? "No memories match your search." : "No memories yet. Tap the + button to add your first one."}
                       </p>
                     </motion.div>
-                  ) : (
+                  ) : notesView === 'grid' ? (
+                    /* ── GRID VIEW ── */
                     <div className="columns-1 sm:columns-2 md:columns-3 gap-6 pt-4">
                       {filteredMemories.map((memory, i) => (
                         <MemoryCard
@@ -325,6 +372,49 @@ export default function HomePage() {
                           isInitialLoad={initialLoad}
                         />
                       ))}
+                    </div>
+                  ) : (
+                    /* ── TIMELINE VIEW ── */
+                    <div className="relative pt-4">
+                      {/* Vertical spine line */}
+                      <div className="absolute left-4 sm:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+
+                      {filteredMemories.map((memory, i) => {
+                        const isLeft = i % 2 === 0;
+                        return (
+                          <motion.div
+                            key={memory.id}
+                            initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: Math.min(i * 0.07, 0.5), duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                            className={`relative flex items-start mb-8 sm:mb-10 ${
+                              isLeft
+                                ? 'flex-row pl-10 sm:pl-0 sm:pr-[calc(50%+1.5rem)]'
+                                : 'flex-row pl-10 sm:pl-[calc(50%+1.5rem)] sm:pr-0'
+                            }`}
+                          >
+                            {/* Timeline dot */}
+                            <div className={`absolute top-5 flex items-center justify-center ${
+                              isLeft
+                                ? 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
+                                : 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
+                            }`}>
+                              <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-white/40 shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+                            </div>
+
+                            {/* Card */}
+                            <div className="w-full">
+                              <MemoryCard
+                                memory={memory}
+                                index={i}
+                                onDelete={handleDelete}
+                                onUpdate={handleUpdate}
+                                isInitialLoad={false}
+                              />
+                            </div>
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   )}
                 </motion.div>
