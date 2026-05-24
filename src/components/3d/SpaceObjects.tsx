@@ -101,16 +101,6 @@ function OrbitingMercury() {
     );
 }
 
-const getMemoryPosition = (index: number, total: number) => {
-    // Generate static stable coordinates in a majestic 3D spiral pattern
-    const angle = index * 1.37; // beautiful distribution angle
-    const radius = 1.0 + (index * 0.28);
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    const z = -1.5 - (index * 0.5); // Spread in Z depth
-    return new THREE.Vector3(x, y, z);
-};
-
 function MemoryStar({ 
     memory, 
     position, 
@@ -127,14 +117,14 @@ function MemoryStar({
     useFrame((state) => {
         if (starRef.current) {
             const time = state.clock.getElapsedTime();
-            const pulse = 1 + Math.sin(time * 2.5 + position.x * 10) * 0.12;
+            const pulse = 1 + Math.sin(time * 2.0 + position.x * 10) * 0.15;
             starRef.current.scale.set(pulse, pulse, pulse);
         }
     });
 
     return (
         <group position={position}>
-            {/* Clickable Area (Larger Sphere) */}
+            {/* Clickable Area (Larger Sphere for easy raycast selection at depth) */}
             <mesh 
                 onClick={(e) => {
                     e.stopPropagation();
@@ -151,26 +141,26 @@ function MemoryStar({
                     document.body.style.cursor = 'default';
                 }}
             >
-                <sphereGeometry args={[0.22, 16, 16]} />
+                <sphereGeometry args={[0.5, 16, 16]} />
                 <meshBasicMaterial visible={false} />
             </mesh>
 
-            {/* Glowing Core */}
+            {/* Glowing Core (Extremely delicate and elegant) */}
             <mesh ref={starRef}>
-                <sphereGeometry args={[0.07, 16, 16]} />
+                <sphereGeometry args={[0.08, 16, 16]} />
                 <meshBasicMaterial 
                     color={hovered ? '#ffffff' : '#38bdf8'} 
                     toneMapped={false}
                 />
             </mesh>
 
-            {/* Glowing Halo */}
-            <mesh scale={[2.5, 2.5, 2.5]}>
-                <sphereGeometry args={[0.07, 16, 16]} />
+            {/* Glowing Halo (Soft and ethereal) */}
+            <mesh scale={[3.0, 3.0, 3.0]}>
+                <sphereGeometry args={[0.08, 16, 16]} />
                 <meshBasicMaterial 
-                    color={hovered ? '#7dd3fc' : '#0284c7'} 
+                    color={hovered ? '#7dd3fc' : '#0ea5e9'} 
                     transparent 
-                    opacity={hovered ? 0.5 : 0.3} 
+                    opacity={hovered ? 0.35 : 0.15} 
                     blending={THREE.AdditiveBlending}
                     depthWrite={false}
                 />
@@ -179,12 +169,12 @@ function MemoryStar({
             {/* Tooltip */}
             {hovered && (
                 <Html 
-                    distanceFactor={4} 
-                    position={[0, 0.2, 0]} 
+                    distanceFactor={8} // Scaled for deep depth (Z=-10)
+                    position={[0, 0.35, 0]} 
                     center
                     style={{ pointerEvents: 'none' }}
                 >
-                    <div className="bg-slate-950/90 border border-sky-500/30 px-3 py-1.5 rounded-xl backdrop-blur-md text-[10px] text-white font-medium whitespace-nowrap shadow-[0_0_20px_rgba(56,189,248,0.3)] flex items-center gap-1.5 select-none transition-all duration-300">
+                    <div className="bg-slate-950/95 border border-sky-500/30 px-3 py-1.5 rounded-xl backdrop-blur-md text-[10px] text-white font-medium whitespace-nowrap shadow-[0_0_20px_rgba(56,189,248,0.3)] flex items-center gap-1.5 select-none transition-all duration-300">
                         <span>{memory.emoji || '💌'}</span>
                         <span className="font-sans font-light tracking-wide">{memory.title}</span>
                     </div>
@@ -206,10 +196,27 @@ export default function SpaceObjects({ memories = [], onSelectMemory }: { memori
         return memories.filter(m => !m.isGalleryOnly && !m.hideFromGallery);
     }, [memories]);
 
-    // Position of each star
+    // Position of each star: wide margin distribution to keep central cards completely clear and readable
     const starPositions = useMemo(() => {
-        return activeMemories.map((_, idx) => getMemoryPosition(idx, activeMemories.length));
-    }, [activeMemories]);
+        return activeMemories.map((_, idx) => {
+            // Seeded values so they are stable
+            const seed = idx * 1.5;
+            const sin = Math.sin(seed);
+            const cos = Math.cos(seed);
+            
+            // On desktop, push stars to the margins (left/right) to keep center content readable
+            // On mobile, spread them wider in height (top/bottom)
+            let x = sin * (isMobile ? 3.0 : 7.0);
+            if (!isMobile && Math.abs(x) < 2.5) {
+                x = x >= 0 ? x + 2.5 : x - 2.5; // Push away from central cards columns
+            }
+            
+            const y = cos * (isMobile ? 4.5 : 3.5);
+            const z = -10 - (idx * 0.6); // Deep in background so they are small and delicate
+            
+            return new THREE.Vector3(x, y, z);
+        });
+    }, [activeMemories, isMobile]);
 
     // Native Three.js line connecting the stars in a chronological chain
     const lineMesh = useMemo(() => {
