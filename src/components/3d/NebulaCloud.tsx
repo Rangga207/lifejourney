@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -125,6 +125,17 @@ function NebulaLayer({
 }: NebulaLayerProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
 
+  // Keep refs in sync with the latest prop values on every render.
+  // This avoids stale-closure issues in useFrame without causing re-mounts.
+  const c1Ref = useRef(color1);
+  const c2Ref = useRef(color2);
+  const c3Ref = useRef(color3);
+  const opacityRef = useRef(opacity);
+  c1Ref.current = color1;
+  c2Ref.current = color2;
+  c3Ref.current = color3;
+  opacityRef.current = opacity;
+
   const uniforms = useMemo(
     () => ({
       uTime:    { value: 0 },
@@ -138,11 +149,19 @@ function NebulaLayer({
     []
   );
 
+  // Update ALL dynamic uniforms inside useFrame so they are applied every GPU tick.
+  // Updating uniforms via useEffect inside the R3F Canvas can miss frames because
+  // React's effect scheduling and the WebGL render loop are not synchronised.
   useFrame(({ clock }) => {
     if (matRef.current) {
       matRef.current.uniforms.uTime.value = clock.getElapsedTime() * speed;
+      matRef.current.uniforms.uColor1.value.set(c1Ref.current);
+      matRef.current.uniforms.uColor2.value.set(c2Ref.current);
+      matRef.current.uniforms.uColor3.value.set(c3Ref.current);
+      matRef.current.uniforms.uOpacity.value = opacityRef.current;
     }
   });
+
 
   return (
     <mesh position={position} rotation={rotation as any}>
@@ -165,42 +184,71 @@ function NebulaLayer({
    NebulaCloud — exports a scene of multiple overlapping layers
    covering the entire background with rich cosmic atmosphere.
 ────────────────────────────────────────────────────────────── */
-export default function NebulaCloud() {
+interface NebulaCloudProps {
+  timeTheme?: 'dawn' | 'sunset' | 'midnight';
+}
+
+export default function NebulaCloud({ timeTheme = 'midnight' }: NebulaCloudProps) {
+  // Define theme-based dynamic colors
+  const themeColors = useMemo(() => {
+    switch (timeTheme) {
+      case 'dawn':
+        return {
+          l1: { c1: '#13113c', c2: '#581c87', c3: '#c084fc' }, // Indigo deep to light violet
+          l2: { c1: '#1a0b2e', c2: '#a16207', c3: '#f59e0b' }, // Sunset warm gold
+          l3: { c1: '#022c22', c2: '#0d9488', c3: '#2dd4bf' }, // Deep teal sunrise transition
+        };
+      case 'sunset':
+        return {
+          l1: { c1: '#1e052d', c2: '#701a75', c3: '#d946ef' }, // Purple-fuchsia
+          l2: { c1: '#1a051d', c2: '#9d174d', c3: '#f43f5e' }, // Rich pink-rose
+          l3: { c1: '#2e0854', c2: '#be185d', c3: '#fda4af' }, // Soft warm glow
+        };
+      case 'midnight':
+      default:
+        return {
+          l1: { c1: '#0d0221', c2: '#6b21a8', c3: '#a855f7' }, // Deep cosmic violet
+          l2: { c1: '#1a0a1a', c2: '#9d174d', c3: '#f59e0b' }, // Dark base / rose-gold glow
+          l3: { c1: '#042f2e', c2: '#0e7490', c3: '#22d3ee' }, // Cool indigo-teal drift
+        };
+    }
+  }, [timeTheme]);
+
   return (
     <group>
-      {/* ── Layer 1: Deep violet-purple mass (largest, deepest back) */}
+      {/* ── Layer 1: Deep mass (largest, deepest back) */}
       <NebulaLayer
         position={[0, 2, -55]}
         size={135}
-        color1="#0d0221"   // void black-purple
-        color2="#6b21a8"   // deep violet
-        color3="#a855f7"   // bright purple
+        color1={themeColors.l1.c1}
+        color2={themeColors.l1.c2}
+        color3={themeColors.l1.c3}
         opacity={0.5}
         scale={1.1}
         speed={0.5}
       />
 
-      {/* ── Layer 2: Warm rose/gold bloom — upper right warm glow */}
+      {/* ── Layer 2: Warm bloom — upper right warm glow */}
       <NebulaLayer
         position={[15, 5, -48]}
         rotation={[0, 0, 0.4]}
         size={90}
-        color1="#1a0a1a"   // dark base
-        color2="#9d174d"   // deep rose
-        color3="#f59e0b"   // warm amber/gold
+        color1={themeColors.l2.c1}
+        color2={themeColors.l2.c2}
+        color3={themeColors.l2.c3}
         opacity={0.4}
         scale={1.3}
         speed={0.6}
       />
 
-      {/* ── Layer 3: Cool Teal/Cyan/Indigo drift — lower left cool drift */}
+      {/* ── Layer 3: Cool drift — lower left cool drift */}
       <NebulaLayer
         position={[-15, -6, -44]}
         rotation={[0, 0, -0.3]}
         size={85}
-        color1="#042f2e"   // dark teal base
-        color2="#0e7490"   // ocean blue
-        color3="#22d3ee"   // bright cyan
+        color1={themeColors.l3.c1}
+        color2={themeColors.l3.c2}
+        color3={themeColors.l3.c3}
         opacity={0.3}
         scale={1.2}
         speed={0.8}

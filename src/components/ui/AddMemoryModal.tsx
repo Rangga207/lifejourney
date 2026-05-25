@@ -97,7 +97,7 @@ export default function AddMemoryModal({ onAdd, isVisible = true, onModalToggle 
             setHideFromGallery(false);
             setOpen(false);
         } catch (error) {
-            alert('Gagal menyimpan memori ke database!');
+            alert('Failed to save memory to the database!');
         } finally {
             setIsSubmitting(false);
         }

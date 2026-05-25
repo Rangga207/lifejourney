@@ -1,12 +1,13 @@
 'use client';
-import { useRef, Suspense } from 'react';
+import { useRef, Suspense, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Sphere, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Memory } from '@/app/actions';
 
-function OrbitingMercury() {
+function OrbitingMercury({ timeTheme = 'midnight' }: { timeTheme?: 'dawn' | 'sunset' | 'midnight' }) {
     const planetRef = useRef<THREE.Mesh>(null);
+    const shaderRef = useRef<any>(null);
     const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
     const { viewport } = useThree();
 
@@ -17,6 +18,49 @@ function OrbitingMercury() {
     const radius = isMobile ? 12 : 15;
     const posX = isMobile ? 6 : 16;
     const posY = isMobile ? -8 : -12;
+
+    const planetColors = useMemo(() => {
+        switch (timeTheme) {
+            case 'dawn':
+                return {
+                    low: '#0f051c',   // Deep sunset purple
+                    mid: '#581c87',   // Purple
+                    high: '#d97706',  // Warm amber
+                    peak: '#fef08a',  // Sunlight yellow
+                    glow1: '#fef08a',
+                    glow2: '#6b21a8'
+                };
+            case 'sunset':
+                return {
+                    low: '#17011a',   // Deep burgundy
+                    mid: '#9d174d',   // Deep pink
+                    high: '#f43f5e',  // Bright rose
+                    peak: '#ffe4e6',  // Warm mist rose
+                    glow1: '#fb7185',
+                    glow2: '#831843'
+                };
+            case 'midnight':
+            default:
+                return {
+                    low: '#020430',
+                    mid: '#1e3a8a',
+                    high: '#0284c7',
+                    peak: '#38bdf8',
+                    glow1: '#60a5fa',
+                    glow2: '#1e3a8a'
+                };
+        }
+    }, [timeTheme]);
+
+    // Keep dynamic uniforms in sync when palette changes
+    useEffect(() => {
+        if (shaderRef.current) {
+            shaderRef.current.uniforms.uLowColor.value.set(planetColors.low);
+            shaderRef.current.uniforms.uMidColor.value.set(planetColors.mid);
+            shaderRef.current.uniforms.uHighColor.value.set(planetColors.high);
+            shaderRef.current.uniforms.uPeakColor.value.set(planetColors.peak);
+        }
+    }, [planetColors]);
 
     useFrame((_, delta) => {
         if (planetRef.current) {
@@ -42,6 +86,20 @@ function OrbitingMercury() {
                     metalness={0.4} // Higher metalness for beautiful majestic specular glares
                     color="#ffffff"
                     onBeforeCompile={(shader) => {
+                        shader.uniforms.uLowColor = { value: new THREE.Color(planetColors.low) };
+                        shader.uniforms.uMidColor = { value: new THREE.Color(planetColors.mid) };
+                        shader.uniforms.uHighColor = { value: new THREE.Color(planetColors.high) };
+                        shader.uniforms.uPeakColor = { value: new THREE.Color(planetColors.peak) };
+                        
+                        shaderRef.current = shader;
+                        
+                        shader.fragmentShader = `
+                            uniform vec3 uLowColor;
+                            uniform vec3 uMidColor;
+                            uniform vec3 uHighColor;
+                            uniform vec3 uPeakColor;
+                        \n` + shader.fragmentShader;
+
                         shader.fragmentShader = shader.fragmentShader.replace(
                             `#include <map_fragment>`,
                             `
@@ -54,15 +112,9 @@ function OrbitingMercury() {
                                 float t2 = smoothstep(0.35, 0.75, v);
                                 float t3 = smoothstep(0.65, 1.0, v);
                                 
-                                // Premium Cinematic Palette
-                                vec3 c_low = vec3(0.02, 0.04, 0.3);   // Intense Deep Space Blue
-                                vec3 c_mid = vec3(0.12, 0.35, 0.95);  // Electric Royal Blue
-                                vec3 c_high = vec3(0.8, 0.5, 0.15);   // Rich Copper
-                                vec3 c_peak = vec3(1.0, 0.95, 0.6);   // Blinding Radiance Yellow
-                                
-                                vec3 finalColor = mix(c_low, c_mid, t1);
-                                finalColor = mix(finalColor, c_high, t2);
-                                finalColor = mix(finalColor, c_peak, t3);
+                                vec3 finalColor = mix(uLowColor, uMidColor, t1);
+                                finalColor = mix(finalColor, uHighColor, t2);
+                                finalColor = mix(finalColor, uPeakColor, t3);
                                 
                                 // Micro-contrast enhancer to simulate ultra-high resolution
                                 finalColor += (v - 0.5) * 0.15;
@@ -79,7 +131,7 @@ function OrbitingMercury() {
             {/* Cinematic Multilayered Atmospheric Glow to hide hard polygon edges */}
             <Sphere args={[radius + 0.2, 32, 32]} position={[posX, posY, -30]}>
                 <meshBasicMaterial
-                    color="#60a5fa"
+                    color={planetColors.glow1}
                     transparent
                     opacity={0.05}
                     blending={THREE.AdditiveBlending}
@@ -89,7 +141,7 @@ function OrbitingMercury() {
             </Sphere>
             <Sphere args={[radius + 0.6, 16, 16]} position={[posX, posY, -30]}>
                 <meshBasicMaterial
-                    color="#1e3a8a"
+                    color={planetColors.glow2}
                     transparent
                     opacity={0.03}
                     blending={THREE.AdditiveBlending}
@@ -101,12 +153,58 @@ function OrbitingMercury() {
     );
 }
 
-export default function SpaceObjects({ memories = [] }: { memories?: Memory[] }) {
+export default function SpaceObjects({ 
+    memories = [], 
+    timeTheme = 'midnight' 
+}: { 
+    memories?: Memory[]; 
+    timeTheme?: 'dawn' | 'sunset' | 'midnight'; 
+}) {
     const { viewport } = useThree();
     const shootingStarRef = useRef<THREE.Group>(null);
     const starMatRef = useRef<THREE.MeshBasicMaterial>(null);
     const cometState = useRef({ life: 0, active: false });
     const isMobile = viewport.width < viewport.height;
+
+    // Resolve theme-based lighting settings
+    const lighting = useMemo(() => {
+        switch (timeTheme) {
+            case 'dawn':
+                return {
+                    ambColor: '#fef08a',
+                    ambIntensity: 0.05,
+                    dir1Color: '#fef08a',
+                    dir1Intensity: 2.8,
+                    dir2Color: '#a5f3fc',
+                    dir2Intensity: 0.2,
+                    sphereColor: '#b45309',
+                    sphereOpacity: 0.05
+                };
+            case 'sunset':
+                return {
+                    ambColor: '#f472b6',
+                    ambIntensity: 0.05,
+                    dir1Color: '#f97316',
+                    dir1Intensity: 3.0,
+                    dir2Color: '#a78bfa',
+                    dir2Intensity: 0.22,
+                    sphereColor: '#701a75',
+                    sphereOpacity: 0.06
+                };
+            case 'midnight':
+            default:
+                return {
+                    ambColor: '#ffffff',
+                    ambIntensity: 0.03,
+                    dir1Color: '#ffffff',
+                    dir1Intensity: 3.5,
+                    dir2Color: '#0284c7',
+                    dir2Intensity: 0.15,
+                    sphereColor: '#4c1d95',
+                    sphereOpacity: 0.08
+                };
+        }
+    }, [timeTheme]);
 
     // Shooting star animation
     useFrame((state, delta) => {
@@ -146,20 +244,20 @@ export default function SpaceObjects({ memories = [] }: { memories?: Memory[] })
     return (
         <group>
             {/* Cinematic Crescent Lighting System */}
-            <ambientLight intensity={0.03} />
+            <ambientLight intensity={lighting.ambIntensity} color={lighting.ambColor} />
 
             {/* Dramatic sunlight blasting from the distant sun */}
-            <directionalLight position={[-35, 25, -15]} intensity={3.5} color="#ffffff" />
+            <directionalLight position={[-35, 25, -15]} intensity={lighting.dir1Intensity} color={lighting.dir1Color} />
 
             {/* Extremely faint blue starlight fill from the back */}
-            <directionalLight position={[20, -10, -20]} intensity={0.15} color="#0284c7" />
+            <directionalLight position={[20, -10, -20]} intensity={lighting.dir2Intensity} color={lighting.dir2Color} />
 
             {/* Deep Space Nebula Glow (Subtle cosmic dust) */}
             <Sphere args={[50, 32, 32]} position={[0, 0, -45]}>
                 <meshBasicMaterial
-                    color="#4c1d95" // Deep cosmic purple
+                    color={lighting.sphereColor}
                     transparent
-                    opacity={0.08}
+                    opacity={lighting.sphereOpacity}
                     blending={THREE.AdditiveBlending}
                     side={THREE.BackSide}
                     depthWrite={false}
@@ -167,7 +265,7 @@ export default function SpaceObjects({ memories = [] }: { memories?: Memory[] })
             </Sphere>
 
             <Suspense fallback={null}>
-                <OrbitingMercury />
+                <OrbitingMercury timeTheme={timeTheme} />
             </Suspense>
 
             {/* Shooting Star Group */}

@@ -138,7 +138,7 @@ export async function addMemory(data: { title: string; content: string; imageUrl
         imageUrls: processedUrls,
         isGalleryOnly: data.isGalleryOnly,
         hideFromGallery: data.hideFromGallery,
-        date: new Date().toLocaleDateString('id-ID', {
+        date: new Date().toLocaleDateString('en-US', {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
@@ -169,7 +169,7 @@ export async function removeMemory(id: string) {
 
 export async function updateMemory(id: string, data: Partial<Memory>) {
     const memories = await getDb();
-    const currentDate = new Date().toLocaleDateString('id-ID', {
+    const currentDate = new Date().toLocaleDateString('en-US', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',

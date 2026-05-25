@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import ParticleField from './ParticleField';
 import SpaceObjects from './SpaceObjects';
 import NebulaCloud from './NebulaCloud';
+import Constellation from './Constellation';
 import type { Memory } from '@/app/actions';
 
 // Mencegah console.error / warning bawaan dari Three.js versi terbaru yang belum sinkron dengan R3F
@@ -17,14 +18,31 @@ if (typeof console !== 'undefined') {
     };
 }
 
-export default function CanvasScene({ memories = [] }: { memories?: Memory[] }) {
+interface CanvasSceneProps {
+    memories?: Memory[];
+    activeMemoryId?: string | null;
+    onSelectMemory?: (id: string | null) => void;
+    timeTheme?: 'dawn' | 'sunset' | 'midnight';
+}
+
+export default function CanvasScene({ 
+    memories = [], 
+    activeMemoryId = null, 
+    onSelectMemory = () => {},
+    timeTheme = 'midnight'
+}: CanvasSceneProps) {
     return (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -10, pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -10 }}>
             <Canvas camera={{ position: [0, 0, 5], fov: 60 }} dpr={[1, 1.5]} gl={{ powerPreference: "high-performance", antialias: false, alpha: true }}>
                 {/* Nebula renders first — deepest background layer */}
-                <NebulaCloud />
+                <NebulaCloud timeTheme={timeTheme} />
                 <ParticleField />
-                <SpaceObjects memories={memories} />
+                <SpaceObjects memories={memories} timeTheme={timeTheme} />
+                <Constellation 
+                    memories={memories} 
+                    activeMemoryId={activeMemoryId} 
+                    onSelectMemory={onSelectMemory} 
+                />
             </Canvas>
         </div>
     );

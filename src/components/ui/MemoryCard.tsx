@@ -69,9 +69,21 @@ interface MemoryCardProps {
     isInitialLoad?: boolean;
     onFocusChange?: (focused: boolean) => void;
     onModalToggle?: (open: boolean) => void;
+    isExpanded?: boolean;
+    onClose?: () => void;
 }
 
-export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = false, onFocusChange, onModalToggle }: MemoryCardProps) {
+export function MemoryCard({ 
+    memory, 
+    index, 
+    onDelete, 
+    onUpdate, 
+    isInitialLoad = false, 
+    onFocusChange, 
+    onModalToggle,
+    isExpanded,
+    onClose
+}: MemoryCardProps) {
     const [expanded, setExpanded] = useState(false);
     const [fullImage, setFullImage] = useState<string | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -85,6 +97,12 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
     
     const allImages = memory.imageUrls || (memory.imageUrl ? [memory.imageUrl] : []);
     const displayImage = allImages[0];
+
+    useEffect(() => {
+        if (isExpanded !== undefined) {
+            setExpanded(isExpanded);
+        }
+    }, [isExpanded]);
 
     useEffect(() => {
         onModalToggle?.(expanded || !!fullImage);
@@ -206,7 +224,10 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-                        onClick={() => setExpanded(false)}
+                        onClick={() => {
+                            setExpanded(false);
+                            onClose?.();
+                        }}
                     >
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
                         <motion.div
@@ -223,7 +244,10 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
                             onClick={(e) => e.stopPropagation()}
                         >
                             <button
-                                onClick={() => setExpanded(false)}
+                                onClick={() => {
+                                    setExpanded(false);
+                                    onClose?.();
+                                }}
                                 className="absolute top-4 right-4 z-20 text-white/60 hover:text-white transition-colors bg-black/30 p-2 rounded-full backdrop-blur-md touch-target flex items-center justify-center"
                                 aria-label="Close"
                             >

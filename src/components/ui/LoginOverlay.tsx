@@ -26,7 +26,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
       setError(false);
       setIsSuccess(true);
       
-      // Delay transition for gorgeous "Hii Bocill" message
+      // Delay transition for gorgeous welcome message
       setTimeout(() => {
         setIsExiting(true);
         setTimeout(onLoginSuccess, 1500); 
@@ -220,7 +220,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                   className="flex items-center justify-center h-48"
                 >
                   <h2 className="font-serif text-4xl sm:text-5xl font-light text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-widest text-center">
-                    Hii Bocill
+                    Welcome Back ♡
                   </h2>
                 </motion.div>
               )}

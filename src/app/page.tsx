@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Image as ImageIcon, LayoutGrid, X, Trash2, Upload, ChevronLeft, ChevronRight, ArrowUpDown, AlignLeft } from 'lucide-react';
+import { Search, Image as ImageIcon, LayoutGrid, X, Trash2, Upload, ChevronLeft, ChevronRight, ArrowUpDown, AlignLeft, Sun, Moon, Sunset } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { MemoryCard } from '@/components/ui/MemoryCard';
 import AddMemoryModal from '@/components/ui/AddMemoryModal';
@@ -28,6 +28,27 @@ export default function HomePage() {
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSpaceBlurred, setIsSpaceBlurred] = useState(false);
+  const [activeMemoryId, setActiveMemoryId] = useState<string | null>(null);
+  const [timeTheme, setTimeTheme] = useState<'dawn' | 'sunset' | 'midnight'>('midnight');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 15) {
+      setTimeTheme('dawn');
+    } else if (hour >= 15 && hour < 19) {
+      setTimeTheme('sunset');
+    } else {
+      setTimeTheme('midnight');
+    }
+  }, []);
+
+  const cycleTimeTheme = useCallback(() => {
+    setTimeTheme((prev) => {
+      if (prev === 'dawn') return 'sunset';
+      if (prev === 'sunset') return 'midnight';
+      return 'dawn';
+    });
+  }, []);
 
   const [activeModals, setActiveModals] = useState<Record<string, boolean>>({});
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -37,6 +58,11 @@ export default function HomePage() {
       if (prev[id] === isOpen) return prev;
       return { ...prev, [id]: isOpen };
     });
+    if (isOpen) {
+      setActiveMemoryId(id);
+    } else {
+      setActiveMemoryId((prev) => (prev === id ? null : prev));
+    }
   }, []);
 
   const isAnyCardModalOpen = useMemo(() => {
@@ -119,7 +145,7 @@ export default function HomePage() {
 
   const handleUpdate = async (id: string, data: Partial<Memory>) => {
     // First optimally update local state for immediate feedback
-    const currentDate = new Date().toLocaleDateString('id-ID', {
+    const currentDate = new Date().toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -225,16 +251,49 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-[100dvh]">
+      {/* Dynamic Background Gradients Cross-fade */}
+      <div className="fixed inset-0 -z-20 pointer-events-none">
+        {/* Dawn Layer */}
+        <div
+          className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+          style={{
+            background: 'linear-gradient(to bottom right, #090921, #23123a)',
+            opacity: timeTheme === 'dawn' ? 1 : 0,
+          }}
+        />
+        {/* Sunset Layer */}
+        <div
+          className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+          style={{
+            background: 'linear-gradient(to bottom right, #11031c, #300a25)',
+            opacity: timeTheme === 'sunset' ? 1 : 0,
+          }}
+        />
+        {/* Midnight Layer */}
+        <div
+          className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+          style={{
+            background: 'linear-gradient(to bottom right, #030712, #0b1329)',
+            opacity: timeTheme === 'midnight' ? 1 : 0,
+          }}
+        />
+      </div>
+
       {/* 3D Background with Zorin-esque spatial blur (DoF) and subtle scale interpolation */}
       <div
-        className="fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        className="fixed top-0 left-0 w-screen h-screen -z-10 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
         style={{
           filter: isSpaceBlurred ? 'blur(6px) saturate(85%)' : 'blur(0px) saturate(100%)',
           transform: isSpaceBlurred ? 'scale(1.025)' : 'scale(1)',
         }}
       >
         <ErrorBoundary>
-          <CanvasScene memories={memories} />
+          <CanvasScene
+            memories={memories}
+            activeMemoryId={activeMemoryId}
+            onSelectMemory={setActiveMemoryId}
+            timeTheme={timeTheme}
+          />
         </ErrorBoundary>
       </div>
 
@@ -319,8 +378,8 @@ export default function HomePage() {
               >
                 <div
                   className={`pointer-events-auto flex items-center p-1 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 transition-colors duration-500 max-w-[95vw] ${isScrolled
-                      ? 'bg-black/60 border-white/10'
-                      : 'bg-white/5 border-white/5'
+                    ? 'bg-black/60 border-white/10'
+                    : 'bg-white/5 border-white/5'
                     }`}
                 >
                   {/* Tabs switcher (Notes / Life Updates) */}
@@ -414,6 +473,18 @@ export default function HomePage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+
+                  {/* Divider and Theme Selector */}
+                  <div className="w-px h-4 bg-white/15 mx-2 shrink-0" />
+                  <button
+                    onClick={cycleTimeTheme}
+                    title="Change Sky Atmosphere"
+                    className="relative flex items-center justify-center p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0 mr-1 ml-0.5"
+                  >
+                    {timeTheme === 'dawn' && <Sun size={12} className="text-amber-300 animate-pulse" />}
+                    {timeTheme === 'sunset' && <Sunset size={12} className="text-rose-400" />}
+                    {timeTheme === 'midnight' && <Moon size={12} className="text-indigo-200" />}
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -427,7 +498,7 @@ export default function HomePage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="relative z-10 px-4 max-w-md mx-auto mb-10"
+                className="relative z-10 px-4 max-w-xs mx-auto mb-10"
               >
                 <div className="relative w-full group">
                   <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors duration-300">
@@ -437,7 +508,7 @@ export default function HomePage() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Nyari apa hayo.."
+                    placeholder="Nyari apa dek?"
                     className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-md"
                   />
                 </div>
@@ -553,12 +624,12 @@ export default function HomePage() {
 
                       {/* Content copywriting */}
                       <h3 className="font-serif text-white/80 text-base font-medium mb-2 tracking-wide">
-                        {searchQuery ? "Kenangan tidak ditemukan" : "Langit memori masih kosong"}
+                        {searchQuery ? "No memories found" : "The memory sky is still empty"}
                       </h3>
                       <p className="text-white/40 text-xs max-w-[260px] leading-relaxed font-light font-sans">
                         {searchQuery
-                          ? "Coba cari dengan kata kunci lain untuk menemukan momen yang Anda cari."
-                          : "Setiap cerita kita berharga. Ketuk tombol + di kiri bawah untuk mulai menulis lembaran pertama."
+                          ? "Try searching with different keywords to find the moment you're looking for."
+                          : "Every story we share is precious. Tap the + button on the bottom left to write your first memory."
                         }
                       </p>
                     </motion.div>
@@ -575,6 +646,8 @@ export default function HomePage() {
                           isInitialLoad={initialLoad}
                           onFocusChange={setIsSpaceBlurred}
                           onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
+                          isExpanded={activeMemoryId === memory.id}
+                          onClose={() => setActiveMemoryId(null)}
                         />
                       ))}
                     </div>
@@ -593,22 +666,22 @@ export default function HomePage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: Math.min(i * 0.07, 0.5), duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                             className={`relative flex items-start mb-8 sm:mb-10 group ${isLeft
-                                ? 'flex-row pl-10 sm:pl-0 sm:pr-[calc(50%+1.5rem)]'
-                                : 'flex-row pl-10 sm:pl-[calc(50%+1.5rem)] sm:pr-0'
+                              ? 'flex-row pl-10 sm:pl-0 sm:pr-[calc(50%+1.5rem)]'
+                              : 'flex-row pl-10 sm:pl-[calc(50%+1.5rem)] sm:pr-0'
                               }`}
                           >
                             {/* Timeline dot */}
                             <div className={`absolute top-5 flex items-center justify-center z-10 ${isLeft
-                                ? 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
-                                : 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
+                              ? 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
+                              : 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
                               }`}>
                               <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-white/40 shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:scale-125 group-hover:border-white/80 transition-all duration-500" />
                             </div>
 
                             {/* Horizontal constellation connector line */}
                             <div className={`absolute top-[26px] hidden sm:block h-px w-6 bg-gradient-to-r transition-all duration-700 pointer-events-none ${isLeft
-                                ? 'right-0 from-white/25 to-transparent group-hover:from-white/60 group-hover:scale-x-125 origin-right'
-                                : 'left-0 from-transparent to-white/25 group-hover:to-white/60 group-hover:scale-x-125 origin-left'
+                              ? 'right-0 from-white/25 to-transparent group-hover:from-white/60 group-hover:scale-x-125 origin-right'
+                              : 'left-0 from-transparent to-white/25 group-hover:to-white/60 group-hover:scale-x-125 origin-left'
                               }`} />
 
                             {/* Card */}
@@ -621,6 +694,8 @@ export default function HomePage() {
                                 isInitialLoad={false}
                                 onFocusChange={setIsSpaceBlurred}
                                 onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
+                                isExpanded={activeMemoryId === memory.id}
+                                onClose={() => setActiveMemoryId(null)}
                               />
                             </div>
                           </motion.div>
