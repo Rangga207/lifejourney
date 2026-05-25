@@ -5,9 +5,30 @@ import { X, Trash2, Calendar, Maximize2, ImagePlus } from 'lucide-react';
 import { type Memory } from '@/app/actions';
 
 export const CARD_COLORS = [
-    { bg: 'from-white/10 to-white/5', border: 'border-white/20', accent: '#ffffff' },
-    { bg: 'from-slate-500/10 to-slate-400/5', border: 'border-slate-500/20', accent: '#cbd5e1' },
-    { bg: 'from-zinc-500/10 to-zinc-400/5', border: 'border-zinc-500/20', accent: '#e4e4e7' },
+    // Dusk Violet (soft violet-purple dusk glow)
+    { 
+        bg: 'from-violet-950/20 to-purple-950/10 hover:from-violet-950/25 hover:to-purple-950/15', 
+        border: 'border-violet-500/15 hover:border-violet-400/35', 
+        accent: '#c084fc', 
+        accentRgb: '192, 132, 252',
+        textAccent: 'text-violet-300'
+    },
+    // Sunset Amber (warm orange-rose twilight glow)
+    { 
+        bg: 'from-amber-950/15 to-rose-950/10 hover:from-amber-950/20 hover:to-rose-950/12', 
+        border: 'border-amber-500/15 hover:border-amber-400/35', 
+        accent: '#fbbf24', 
+        accentRgb: '251, 191, 36',
+        textAccent: 'text-amber-200'
+    },
+    // Starry Indigo (dreamy deep blue-indigo space glow)
+    { 
+        bg: 'from-indigo-950/20 to-blue-950/10 hover:from-indigo-950/25 hover:to-blue-950/15', 
+        border: 'border-indigo-500/15 hover:border-indigo-400/35', 
+        accent: '#818cf8', 
+        accentRgb: '129, 140, 248',
+        textAccent: 'text-indigo-300'
+    },
 ];
 
 interface MemoryCardProps {
@@ -21,6 +42,9 @@ interface MemoryCardProps {
 export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = false }: MemoryCardProps) {
     const [expanded, setExpanded] = useState(false);
     const [fullImage, setFullImage] = useState<string | null>(null);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [isHovered, setIsHovered] = useState(false);
+
     const colorIndex = index % CARD_COLORS.length;
     const colorSet = CARD_COLORS[colorIndex];
     
@@ -36,50 +60,86 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.85, y: -10 }}
                 transition={{ duration: 0.8, delay: animDelay, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -4, scale: 1.02 }}
-                className={`break-inside-avoid mb-4 cursor-pointer relative rounded-2xl p-4 glass-card bg-gradient-to-br ${colorSet.bg} border ${colorSet.border} transition-shadow duration-300`}
-                style={{ boxShadow: `0 4px 32px 0 ${colorSet.accent}20` }}
+                whileHover={{ y: -4, scale: 1.015 }}
+                onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setMousePos({
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top,
+                    });
+                }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                className={`break-inside-avoid mb-5 cursor-pointer relative rounded-2xl p-5 glass-card bg-gradient-to-br ${colorSet.bg} border ${colorSet.border} transition-all duration-500 group overflow-hidden`}
+                style={{ 
+                    boxShadow: `0 8px 32px -4px rgba(${colorSet.accentRgb}, 0.04), inset 0 1px 1px 0 rgba(255,255,255,0.05)`
+                }}
                 onClick={() => setExpanded(true)}
             >
+                {/* Spotlight Cursor-tracking Glow Overlay */}
+                {isHovered && (
+                    <div
+                        className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+                        style={{
+                            background: `radial-gradient(150px circle at ${mousePos.x}px ${mousePos.y}px, rgba(${colorSet.accentRgb}, 0.12), transparent 80%)`,
+                        }}
+                    />
+                )}
+
                 {displayImage && (
-                    <div className="-mx-4 -mt-4 mb-3 relative h-48 overflow-hidden rounded-t-2xl border-b border-white/10 group">
-                        <img src={displayImage} alt={memory.title} className="w-full h-full object-cover object-center" />
-                        {allImages.length > 1 && (
-                            <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-xs text-white/90 font-medium">
-                                +{allImages.length - 1}
-                            </div>
-                        )}
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); setFullImage(displayImage); }}
-                            className="absolute bottom-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                            aria-label="View full size"
-                        >
-                            <Maximize2 size={14} />
-                        </button>
+                    <div className="relative mb-4 overflow-hidden rounded-xl bg-white/5 border border-white/10 p-1.5 shadow-[0_8px_20px_rgba(0,0,0,0.4)] aspect-[4/3] group-hover:shadow-[0_12px_25px_rgba(0,0,0,0.5)] transition-all duration-500">
+                        <div className="w-full h-full overflow-hidden rounded-lg relative">
+                            <img 
+                                src={displayImage} 
+                                alt={memory.title} 
+                                className="w-full h-full object-cover object-center group-hover:scale-105 group-hover:rotate-0.5 transition-transform duration-700 ease-out" 
+                            />
+                            {allImages.length > 1 && (
+                                <div className="absolute top-2 right-2 bg-black/75 backdrop-blur-md px-2 py-1 rounded-lg text-[9px] text-white/90 font-mono tracking-wider">
+                                    +{allImages.length - 1} PHOTOS
+                                </div>
+                            )}
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setFullImage(displayImage); }}
+                                className="absolute bottom-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                                aria-label="View full size"
+                            >
+                                <Maximize2 size={14} />
+                            </button>
+                        </div>
                     </div>
                 )}
+
+                <div className="flex items-center justify-between mb-1.5 text-white/40 font-mono text-[9px] tracking-widest relative z-10">
+                    <span className={`uppercase font-semibold ${colorSet.textAccent}`}>
+                        {memory.isGalleryOnly ? 'LIFE UPDATE' : 'JOURNAL ENTRY'}
+                    </span>
+                    <div className="flex items-center gap-1 font-light">
+                        <Calendar size={9} />
+                        <span>{memory.date}</span>
+                    </div>
+                </div>
+
                 <div className="flex items-start justify-between gap-3 mb-2 relative z-10">
-                    <h3 className="font-serif font-semibold text-white text-lg leading-snug line-clamp-2 flex-1">
+                    <h3 className="font-serif font-medium text-white text-lg leading-snug line-clamp-2 flex-1 group-hover:text-white/90 transition-colors">
                         {memory.title}
                     </h3>
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            onDelete(memory.id);
+                            if (confirm('Are you sure you want to delete this memory?')) {
+                                onDelete(memory.id);
+                            }
                         }}
-                        className="text-white/30 hover:text-red-400 transition-colors p-2 -mr-2 -mt-1 rounded-lg hover:bg-red-500/10 flex-shrink-0 touch-target flex items-center justify-center"
+                        className="text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all p-1.5 -mr-1.5 -mt-1.5 rounded-lg hover:bg-red-500/10 flex-shrink-0 touch-target flex items-center justify-center"
                         aria-label="Delete memory"
                     >
                         <Trash2 size={13} />
                     </button>
                 </div>
-                <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap line-clamp-4">
+                <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap line-clamp-4 relative z-10 font-light">
                     {memory.content}
                 </p>
-                <div className="flex items-center gap-1 mt-3 text-white/30">
-                    <Calendar size={10} />
-                    <span className="text-[10px]">{memory.date}</span>
-                </div>
             </motion.div>
 
             {/* Expanded Modal */}
@@ -100,7 +160,7 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
                             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
                             className={`relative w-full max-w-md overflow-y-auto scroll-smooth hide-scrollbar rounded-3xl p-6 glass-card bg-gradient-to-br ${colorSet.bg} border ${colorSet.border}`}
                             style={{
-                                boxShadow: `0 8px 64px 0 ${colorSet.accent}40`,
+                                boxShadow: `0 24px 64px -12px rgba(${colorSet.accentRgb}, 0.25), inset 0 1px 1px 0 rgba(255,255,255,0.05)`,
                                 maxHeight: '90dvh',
                                 paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
                             }}

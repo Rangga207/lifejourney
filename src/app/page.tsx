@@ -377,17 +377,17 @@ export default function HomePage() {
           </header>
 
           {/* Search bar */}
-          <section className="relative z-10 px-4 max-w-4xl mx-auto mb-8">
+          <section className="relative z-10 px-4 max-w-md mx-auto mb-10">
             <div className="relative w-full group">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/25 group-focus-within:text-white/60 transition-colors">
-                <Search size={15} />
+              <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors duration-300">
+                <Search size={14} />
               </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search memories..."
-                className="w-full bg-white/4 border border-white/8 rounded-2xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-1 focus:ring-white/25 focus:bg-white/8 transition-all font-light"
+                placeholder="Cari kenangan kita..."
+                className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-md"
               />
             </div>
           </section>
@@ -405,13 +405,108 @@ export default function HomePage() {
                 >
                   {filteredMemories.length === 0 ? (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      className="flex flex-col items-center justify-center py-24 gap-4 text-center"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex flex-col items-center justify-center py-20 px-6 text-center relative overflow-hidden"
                     >
-                      <p className="text-white/40 text-sm max-w-[220px]">
-                        {searchQuery ? "No memories match your search." : "No memories yet. Tap the + button to add your first one."}
+                      {/* Ethereal background aura glow */}
+                      <div className="absolute w-48 h-48 rounded-full bg-violet-500/5 blur-[80px] pointer-events-none -z-10" />
+
+                      {/* Interactive Constellation SVG */}
+                      <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
+                        <svg width="120" height="120" viewBox="0 0 120 120" className="text-white/15">
+                          {/* Connection Lines */}
+                          <motion.line
+                            x1="20" y1="50" x2="50" y2="20"
+                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 2, delay: 0.5 }}
+                          />
+                          <motion.line
+                            x1="50" y1="20" x2="90" y2="40"
+                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 2.2, delay: 0.7 }}
+                          />
+                          <motion.line
+                            x1="90" y1="40" x2="70" y2="85"
+                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 2.5, delay: 0.9 }}
+                          />
+                          <motion.line
+                            x1="70" y1="85" x2="30" y2="90"
+                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 2, delay: 1.1 }}
+                          />
+                          <motion.line
+                            x1="30" y1="90" x2="20" y2="50"
+                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 2.3, delay: 1.3 }}
+                          />
+
+                          {/* Pulsing Constellation Stars */}
+                          <motion.circle
+                            cx="20" cy="50" r="3.5" fill="rgba(255,255,255,0.7)"
+                            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+                            transition={{ repeat: Infinity, duration: 3, delay: 0.2 }}
+                          />
+                          <motion.circle
+                            cx="50" cy="20" r="4.5" fill="rgba(255,255,255,0.8)"
+                            animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                            transition={{ repeat: Infinity, duration: 4.5, delay: 0.5 }}
+                          />
+                          <motion.circle
+                            cx="90" cy="40" r="3" fill="rgba(255,255,255,0.6)"
+                            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                            transition={{ repeat: Infinity, duration: 3.5, delay: 0.8 }}
+                          />
+                          <motion.circle
+                            cx="70" cy="85" r="4" fill="rgba(255,255,255,0.75)"
+                            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+                            transition={{ repeat: Infinity, duration: 4, delay: 1.1 }}
+                          />
+                          <motion.circle
+                            cx="30" cy="90" r="3.5" fill="rgba(255,255,255,0.7)"
+                            animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+                            transition={{ repeat: Infinity, duration: 3.8, delay: 1.4 }}
+                          />
+                        </svg>
+
+                        {/* Floating Center Nebula Glow */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <motion.div
+                            animate={{
+                              scale: [0.9, 1.1, 0.9],
+                              opacity: [0.2, 0.4, 0.2]
+                            }}
+                            transition={{
+                              repeat: Infinity,
+                              duration: 5,
+                              ease: "easeInOut"
+                            }}
+                            className="w-16 h-16 rounded-full bg-indigo-500/20 blur-[15px]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Content copywriting */}
+                      <h3 className="font-serif text-white/80 text-base font-medium mb-2 tracking-wide">
+                        {searchQuery ? "Kenangan tidak ditemukan" : "Langit memori masih kosong"}
+                      </h3>
+                      <p className="text-white/40 text-xs max-w-[260px] leading-relaxed font-light font-sans">
+                        {searchQuery 
+                          ? "Coba cari dengan kata kunci lain untuk menemukan momen yang Anda cari." 
+                          : "Setiap cerita kita berharga. Ketuk tombol + di kiri bawah untuk mulai menulis lembaran pertama."
+                        }
                       </p>
                     </motion.div>
                   ) : notesView === 'grid' ? (
