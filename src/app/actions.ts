@@ -4,9 +4,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 
-export async function verifyLogin(email: string, pass: string): Promise<boolean> {
-    // In a real app, this would check a database
-    return email === 'katarinacakra230706@gmail.com' && pass === 'DwiCantikBGT';
+export async function verifyLogin(pin: string): Promise<boolean> {
+    // Check against the 6-digit numeric passcode
+    return pin === '230706';
 }
 
 export interface Memory {
