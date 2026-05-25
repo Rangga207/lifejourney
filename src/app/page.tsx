@@ -341,65 +341,35 @@ export default function HomePage() {
           </div>
 
           {/* Header */}
-          <header className="relative z-10 pt-[max(6.5rem,env(safe-area-inset-top)+3.5rem)] pb-8 text-center px-6 flex flex-col items-center">
+          <header className="relative z-10 pt-[max(5.5rem,env(safe-area-inset-top)+2.5rem)] pb-4 text-center px-6">
             <AnimatePresence>
               {titleVisible && (
                 <motion.div
-                  initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex flex-col items-center"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
                 >
-                  {/* Cosmic Orbit Divider */}
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 0.8, scale: 1 }}
-                    transition={{ delay: 0.2, duration: 1 }}
-                    className="flex items-center gap-4 mb-6"
-                  >
-                    <div className="w-8 sm:w-12 h-px bg-gradient-to-r from-transparent to-white/40" />
-                    <span className="text-[9px] sm:text-[11px] uppercase tracking-[0.6em] text-white/80 font-light ml-[0.3em]">
-                      Our Eternal Space
-                    </span>
-                    <div className="w-8 sm:w-12 h-px bg-gradient-to-l from-transparent to-white/40" />
-                  </motion.div>
-
-                  {/* Ethereal Glowing Title */}
-                  <motion.h1
+                  <motion.div
+                    className="flex flex-col items-center justify-center"
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="font-serif text-3xl sm:text-6xl font-extralight tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/30 text-glow leading-none select-none"
+                    transition={{ delay: 0.5, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    MEMORY OF US
-                  </motion.h1>
+                    {/* Celestial Orbit Divider */}
+                    <div className="flex items-center gap-4 mb-5 opacity-80">
+                      <span className="text-[9px] sm:text-[11px] uppercase tracking-[0.5em] text-white/80 font-light ml-[0.25em]">
+                        Final Chapter
+                      </span>
+                    </div>
 
-                  {/* Starry Poetic Subtitle */}
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8, duration: 1.8 }}
-                    className="text-white/40 text-[10px] sm:text-[12px] font-light tracking-[0.18em] max-w-xl mx-auto leading-relaxed uppercase mt-6 px-4"
-                  >
-                    A celestial sanctuary capturing our most precious moments, suspended like constellations in an infinite universe.
-                  </motion.p>
-
-                  {/* Constellation Statistics Counter */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.1, duration: 1.2 }}
-                    className="mt-8 flex items-center justify-center gap-6 sm:gap-8 text-[9px] sm:text-[10px] font-light tracking-[0.25em] text-white/25 uppercase"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400/80 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.6)]" />
-                      {memories.filter(m => !m.isGalleryOnly).length} Constellations
-                    </span>
-                    <div className="w-1 h-1 rounded-full bg-white/10" />
-                    <span className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400/80 animate-pulse shadow-[0_0_8px_rgba(251,113,133,0.6)]" />
-                      {allImages.length} Artifacts
-                    </span>
+                    {/* Starry Text */}
+                    <motion.p
+                      className="flex items-center justify-center gap-3 text-white/40 text-[11px] sm:text-[13px] font-light tracking-[0.2em] uppercase w-full max-w-2xl mx-auto"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8, duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                    </motion.p>
                   </motion.div>
                 </motion.div>
               )}
@@ -407,17 +377,17 @@ export default function HomePage() {
           </header>
 
           {/* Search bar */}
-          <section className="relative z-10 px-4 max-w-3xl mx-auto mb-10 w-full">
+          <section className="relative z-10 px-4 max-w-4xl mx-auto mb-8">
             <div className="relative w-full group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/20 group-focus-within:text-white/50 transition-colors duration-500">
-                <Search size={14} strokeWidth={1.5} />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/25 group-focus-within:text-white/60 transition-colors">
+                <Search size={15} />
               </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search constellations & memories..."
-                className="w-full bg-white/[0.015] border border-white/[0.06] hover:border-white/[0.1] focus:border-white/[0.18] rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:bg-white/[0.035] focus:shadow-[0_0_40px_rgba(255,255,255,0.01)] transition-all duration-500 font-light backdrop-blur-md"
+                placeholder="Search memories..."
+                className="w-full bg-white/4 border border-white/8 rounded-2xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-1 focus:ring-white/25 focus:bg-white/8 transition-all font-light"
               />
             </div>
           </section>
