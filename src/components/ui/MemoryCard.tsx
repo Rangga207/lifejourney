@@ -68,9 +68,10 @@ interface MemoryCardProps {
     onUpdate?: (id: string, data: Partial<Memory>) => void;
     isInitialLoad?: boolean;
     onFocusChange?: (focused: boolean) => void;
+    onModalToggle?: (open: boolean) => void;
 }
 
-export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = false, onFocusChange }: MemoryCardProps) {
+export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = false, onFocusChange, onModalToggle }: MemoryCardProps) {
     const [expanded, setExpanded] = useState(false);
     const [fullImage, setFullImage] = useState<string | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -84,6 +85,10 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
     
     const allImages = memory.imageUrls || (memory.imageUrl ? [memory.imageUrl] : []);
     const displayImage = allImages[0];
+
+    useEffect(() => {
+        onModalToggle?.(expanded || !!fullImage);
+    }, [expanded, fullImage, onModalToggle]);
 
     useEffect(() => {
         if (displayImage) {

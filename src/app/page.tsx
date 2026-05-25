@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Image as ImageIcon, LayoutGrid, X, Trash2, Upload, ChevronLeft, ChevronRight, ArrowUpDown, AlignLeft } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -28,6 +28,22 @@ export default function HomePage() {
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSpaceBlurred, setIsSpaceBlurred] = useState(false);
+
+  const [activeModals, setActiveModals] = useState<Record<string, boolean>>({});
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const handleModalToggle = useCallback((id: string, isOpen: boolean) => {
+    setActiveModals((prev) => {
+      if (prev[id] === isOpen) return prev;
+      return { ...prev, [id]: isOpen };
+    });
+  }, []);
+
+  const isAnyCardModalOpen = useMemo(() => {
+    return Object.values(activeModals).some(Boolean);
+  }, [activeModals]);
+
+  const isHideHeader = isAnyCardModalOpen || !!fullGalleryImage || isAddModalOpen;
 
   const filteredMemories = useMemo(() => {
     const filtered = memories.filter(m =>
@@ -243,166 +259,192 @@ export default function HomePage() {
           className="relative z-10 flex flex-col min-h-screen"
         >
           {/* Header */}
-          <header className="relative z-10 pt-[max(3.5rem,env(safe-area-inset-top)+0.5rem)] pb-4 text-center px-6">
-            <AnimatePresence>
-              {titleVisible && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
-                >
-                  <motion.div
-                    className="flex flex-col items-center justify-center"
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    {/* Celestial Orbit Divider */}
-                    <div className="flex items-center gap-4 mb-2 opacity-90">
-                      <span 
-                        className="text-[10px] sm:text-[12px] uppercase tracking-[0.55em] text-white font-extralight ml-[0.25em]"
-                        style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
-                      >
-                        Final Chapter
-                      </span>
-                    </div>
-
-                    {/* Starry Text */}
-                    <motion.p
-                      className="flex items-center justify-center gap-3 text-white/40 text-[11px] sm:text-[13px] font-light tracking-[0.2em] uppercase w-full max-w-2xl mx-auto"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.8, duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+          <AnimatePresence>
+            {!isHideHeader && (
+              <motion.header
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="relative z-10 pt-[max(3.5rem,env(safe-area-inset-top)+0.5rem)] pb-4 text-center px-6"
+              >
+                <AnimatePresence>
+                  {titleVisible && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, ease: 'easeOut' }}
                     >
-                    </motion.p>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </header>
+                      <motion.div
+                        className="flex flex-col items-center justify-center"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                      >
+                        {/* Celestial Orbit Divider */}
+                        <div className="flex items-center gap-4 mb-2 opacity-90">
+                          <span 
+                            className="text-[10px] sm:text-[12px] uppercase tracking-[0.55em] text-white font-extralight ml-[0.25em]"
+                            style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                          >
+                            Final Chapter
+                          </span>
+                        </div>
+
+                        {/* Starry Text */}
+                        <motion.p
+                          className="flex items-center justify-center gap-3 text-white/40 text-[11px] sm:text-[13px] font-light tracking-[0.2em] uppercase w-full max-w-2xl mx-auto"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.8, duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                        </motion.p>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.header>
+            )}
+          </AnimatePresence>
 
           {/* Floating Apple-style Header */}
-          <div className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-6">
-            <motion.div
-              layout
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-              className={`pointer-events-auto flex items-center p-1 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 transition-colors duration-500 max-w-[95vw] ${
-                isScrolled
-                  ? 'bg-black/60 border-white/10'
-                  : 'bg-white/5 border-white/5'
-              }`}
-            >
-              {/* Tabs switcher (Notes / Life Updates) */}
-              <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5">
-                <button
-                  onClick={() => setActiveTab('memories')}
-                  className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+          <AnimatePresence>
+            {!isHideHeader && (
+              <motion.div
+                initial={{ y: -30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -30, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+                className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-6"
+              >
+                <div
+                  className={`pointer-events-auto flex items-center p-1 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 transition-colors duration-500 max-w-[95vw] ${
+                    isScrolled
+                      ? 'bg-black/60 border-white/10'
+                      : 'bg-white/5 border-white/5'
+                  }`}
                 >
-                  {activeTab === 'memories' && (
-                    <motion.div
-                      layoutId="active-tab"
-                      className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <LayoutGrid size={13} className="relative z-10 text-white" />
-                  <span className="relative z-10 text-white">Notes</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('gallery')}
-                  className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
-                >
-                  {activeTab === 'gallery' && (
-                    <motion.div
-                      layoutId="active-tab"
-                      className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <ImageIcon size={13} className="relative z-10 text-white" />
-                  <span className="relative z-10 text-white">Updates</span>
-                </button>
-              </div>
-
-              {/* Separator & Notes-only controls - only if activeTab is 'memories' */}
-              <AnimatePresence initial={false}>
-                {activeTab === 'memories' && (
-                  <motion.div
-                    key="notes-controls"
-                    layout
-                    initial={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
-                    animate={{ opacity: 1, width: 'auto', x: 0, marginLeft: 12 }}
-                    exit={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="flex items-center gap-2 sm:gap-2.5 overflow-hidden"
-                  >
-                    {/* Separator / Divider */}
-                    <div className="w-px h-4 bg-white/15 self-center shrink-0" />
-
-                    {/* View toggle: Grid / Timeline */}
-                    <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
-                      <button
-                        onClick={() => setNotesView('grid')}
-                        title="Grid view"
-                        className="relative p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
-                      >
-                        {notesView === 'grid' && (
-                          <motion.div
-                            layoutId="active-view"
-                            className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                          />
-                        )}
-                        <LayoutGrid size={13} className="relative z-10 text-white" />
-                      </button>
-                      <button
-                        onClick={() => setNotesView('timeline')}
-                        title="Timeline view"
-                        className="relative p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
-                      >
-                        {notesView === 'timeline' && (
-                          <motion.div
-                            layoutId="active-view"
-                            className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                          />
-                        )}
-                        <AlignLeft size={13} className="relative z-10 text-white" />
-                      </button>
-                    </div>
-
-                    {/* Sort toggle */}
+                  {/* Tabs switcher (Notes / Life Updates) */}
+                  <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5">
                     <button
-                      onClick={() => setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'))}
-                      title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
-                      className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+                      onClick={() => setActiveTab('memories')}
+                      className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
                     >
-                      <ArrowUpDown size={11} className="text-white/60" />
-                      <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                      {activeTab === 'memories' && (
+                        <motion.div
+                          layoutId="active-tab"
+                          className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                      <LayoutGrid size={13} className="relative z-10 text-white" />
+                      <span className="relative z-10 text-white">Notes</span>
                     </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          </div>
+                    <button
+                      onClick={() => setActiveTab('gallery')}
+                      className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+                    >
+                      {activeTab === 'gallery' && (
+                        <motion.div
+                          layoutId="active-tab"
+                          className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                      <ImageIcon size={13} className="relative z-10 text-white" />
+                      <span className="relative z-10 text-white">Updates</span>
+                    </button>
+                  </div>
+
+                  {/* Separator & Notes-only controls - only if activeTab is 'memories' */}
+                  <AnimatePresence initial={false}>
+                    {activeTab === 'memories' && (
+                      <motion.div
+                        key="notes-controls"
+                        layout
+                        initial={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
+                        animate={{ opacity: 1, width: 'auto', x: 0, marginLeft: 12 }}
+                        exit={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        className="flex items-center gap-2 sm:gap-2.5 overflow-hidden"
+                      >
+                        {/* Separator / Divider */}
+                        <div className="w-px h-4 bg-white/15 self-center shrink-0" />
+
+                        {/* View toggle: Grid / Timeline */}
+                        <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
+                          <button
+                            onClick={() => setNotesView('grid')}
+                            title="Grid view"
+                            className="relative p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                          >
+                            {notesView === 'grid' && (
+                              <motion.div
+                                layoutId="active-view"
+                                className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                              />
+                            )}
+                            <LayoutGrid size={13} className="relative z-10 text-white" />
+                          </button>
+                          <button
+                            onClick={() => setNotesView('timeline')}
+                            title="Timeline view"
+                            className="relative p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                          >
+                            {notesView === 'timeline' && (
+                              <motion.div
+                                layoutId="active-view"
+                                className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                              />
+                            )}
+                            <AlignLeft size={13} className="relative z-10 text-white" />
+                          </button>
+                        </div>
+
+                        {/* Sort toggle */}
+                        <button
+                          onClick={() => setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'))}
+                          title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
+                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+                        >
+                          <ArrowUpDown size={11} className="text-white/60" />
+                          <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Search bar */}
-          <section className="relative z-10 px-4 max-w-md mx-auto mb-10">
-            <div className="relative w-full group">
-              <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors duration-300">
-                <Search size={14} />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari kenangan kita..."
-                className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-md"
-              />
-            </div>
-          </section>
+          <AnimatePresence>
+            {!isHideHeader && (
+              <motion.section
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="relative z-10 px-4 max-w-md mx-auto mb-10"
+              >
+                <div className="relative w-full group">
+                  <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors duration-300">
+                    <Search size={14} />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cari kenangan kita..."
+                    className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-md"
+                  />
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
 
           {/* Main Content Area */}
           <section className="relative z-10 px-4 pb-safe max-w-4xl mx-auto" style={{ paddingBottom: 'max(8rem, calc(env(safe-area-inset-bottom) + 7rem))' }}>
@@ -533,6 +575,7 @@ export default function HomePage() {
                           onUpdate={handleUpdate}
                           isInitialLoad={initialLoad}
                           onFocusChange={setIsSpaceBlurred}
+                          onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
                         />
                       ))}
                     </div>
@@ -581,6 +624,7 @@ export default function HomePage() {
                                 onUpdate={handleUpdate}
                                 isInitialLoad={false}
                                 onFocusChange={setIsSpaceBlurred}
+                                onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
                               />
                             </div>
                           </motion.div>
@@ -655,10 +699,10 @@ export default function HomePage() {
           </section>
 
           {/* Add Memory FAB */}
-          <AddMemoryModal onAdd={handleAdd} />
+          <AddMemoryModal onAdd={handleAdd} isVisible={!isHideHeader} onModalToggle={setIsAddModalOpen} />
 
           {/* Music Player */}
-          <AudioPlayer />
+          <AudioPlayer visible={!isHideHeader} />
 
           {/* Full Size Gallery Image Modal */}
           <AnimatePresence>

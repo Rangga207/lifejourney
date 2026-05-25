@@ -3,14 +3,14 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Music2 } from 'lucide-react';
 
-export default function AudioPlayer() {
+export default function AudioPlayer({ visible = true }: { visible?: boolean }) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
-        const timer = setTimeout(() => setIsVisible(true), 1500);
-        
+        const timer = setTimeout(() => setIsReady(true), 1500);
+
         const audio = audioRef.current;
         let interacted = false;
 
@@ -68,12 +68,13 @@ export default function AudioPlayer() {
                 preload="metadata"
             />
             <AnimatePresence>
-                {isVisible && (
+                {isReady && visible && (
                     <motion.div
+                        key="audio-player"
                         initial={{ opacity: 0, y: 20, scale: 0.8 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.8 }}
-                        transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                         className="fixed z-50"
                         style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom))', right: '1.5rem' }}
                     >

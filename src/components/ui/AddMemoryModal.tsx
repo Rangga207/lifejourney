@@ -1,14 +1,20 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Image as ImageIcon } from 'lucide-react';
 
 interface AddMemoryModalProps {
     onAdd: (data: { title: string; content: string; imageUrl?: string; imageUrls?: string[]; hideFromGallery?: boolean }) => Promise<void> | void;
+    isVisible?: boolean;
+    onModalToggle?: (open: boolean) => void;
 }
 
-export default function AddMemoryModal({ onAdd }: AddMemoryModalProps) {
+export default function AddMemoryModal({ onAdd, isVisible = true, onModalToggle }: AddMemoryModalProps) {
     const [open, setOpen] = useState(false);
+
+    useEffect(() => {
+        onModalToggle?.(open);
+    }, [open, onModalToggle]);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [images, setImages] = useState<string[]>([]);
@@ -100,19 +106,24 @@ export default function AddMemoryModal({ onAdd }: AddMemoryModalProps) {
     return (
         <>
             {/* FAB Button */}
-            <motion.button
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setOpen(true)}
-                className="fixed z-50 w-14 h-14 rounded-full bg-white/10 border border-white/20 shadow-lg shadow-black/20 flex items-center justify-center text-white backdrop-blur-md touch-target"
-                style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom))', left: '1.5rem' }}
-                aria-label="Add Memory"
-            >
-                <Plus size={24} />
-            </motion.button>
+            <AnimatePresence>
+                {isVisible && (
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setOpen(true)}
+                        className="fixed z-50 w-14 h-14 rounded-full bg-white/10 border border-white/20 shadow-lg shadow-black/20 flex items-center justify-center text-white backdrop-blur-md touch-target"
+                        style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom))', left: '1.5rem' }}
+                        aria-label="Add Memory"
+                    >
+                        <Plus size={24} />
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
             {/* Modal */}
             <AnimatePresence>
