@@ -226,7 +226,7 @@ export default function HomePage() {
   return (
     <main className="relative min-h-[100dvh]">
       {/* 3D Background with Zorin-esque spatial blur (DoF) and subtle scale interpolation */}
-      <div 
+      <div
         className="fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
         style={{
           filter: isSpaceBlurred ? 'blur(6px) saturate(85%)' : 'blur(0px) saturate(100%)',
@@ -283,7 +283,7 @@ export default function HomePage() {
                       >
                         {/* Celestial Orbit Divider */}
                         <div className="flex items-center gap-4 mb-2 opacity-90">
-                          <span 
+                          <span
                             className="text-[10px] sm:text-[12px] uppercase tracking-[0.55em] text-white font-extralight ml-[0.25em]"
                             style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
                           >
@@ -318,11 +318,10 @@ export default function HomePage() {
                 className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-6"
               >
                 <div
-                  className={`pointer-events-auto flex items-center p-1 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 transition-colors duration-500 max-w-[95vw] ${
-                    isScrolled
+                  className={`pointer-events-auto flex items-center p-1 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 transition-colors duration-500 max-w-[95vw] ${isScrolled
                       ? 'bg-black/60 border-white/10'
                       : 'bg-white/5 border-white/5'
-                  }`}
+                    }`}
                 >
                   {/* Tabs switcher (Notes / Life Updates) */}
                   <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5">
@@ -438,7 +437,7 @@ export default function HomePage() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cari kenangan kita..."
+                    placeholder="Nyari apa hayo.."
                     className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-md"
                   />
                 </div>
@@ -557,8 +556,8 @@ export default function HomePage() {
                         {searchQuery ? "Kenangan tidak ditemukan" : "Langit memori masih kosong"}
                       </h3>
                       <p className="text-white/40 text-xs max-w-[260px] leading-relaxed font-light font-sans">
-                        {searchQuery 
-                          ? "Coba cari dengan kata kunci lain untuk menemukan momen yang Anda cari." 
+                        {searchQuery
+                          ? "Coba cari dengan kata kunci lain untuk menemukan momen yang Anda cari."
                           : "Setiap cerita kita berharga. Ketuk tombol + di kiri bawah untuk mulai menulis lembaran pertama."
                         }
                       </p>
@@ -593,27 +592,24 @@ export default function HomePage() {
                             initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: Math.min(i * 0.07, 0.5), duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                            className={`relative flex items-start mb-8 sm:mb-10 group ${
-                              isLeft
+                            className={`relative flex items-start mb-8 sm:mb-10 group ${isLeft
                                 ? 'flex-row pl-10 sm:pl-0 sm:pr-[calc(50%+1.5rem)]'
                                 : 'flex-row pl-10 sm:pl-[calc(50%+1.5rem)] sm:pr-0'
-                            }`}
+                              }`}
                           >
                             {/* Timeline dot */}
-                            <div className={`absolute top-5 flex items-center justify-center z-10 ${
-                              isLeft
+                            <div className={`absolute top-5 flex items-center justify-center z-10 ${isLeft
                                 ? 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
                                 : 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
-                            }`}>
+                              }`}>
                               <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-white/40 shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:scale-125 group-hover:border-white/80 transition-all duration-500" />
                             </div>
 
                             {/* Horizontal constellation connector line */}
-                            <div className={`absolute top-[26px] hidden sm:block h-px w-6 bg-gradient-to-r transition-all duration-700 pointer-events-none ${
-                              isLeft
+                            <div className={`absolute top-[26px] hidden sm:block h-px w-6 bg-gradient-to-r transition-all duration-700 pointer-events-none ${isLeft
                                 ? 'right-0 from-white/25 to-transparent group-hover:from-white/60 group-hover:scale-x-125 origin-right'
                                 : 'left-0 from-transparent to-white/25 group-hover:to-white/60 group-hover:scale-x-125 origin-left'
-                            }`} />
+                              }`} />
 
                             {/* Card */}
                             <div className="w-full">
@@ -644,8 +640,8 @@ export default function HomePage() {
                   <div className="flex justify-between items-end mb-4 px-1">
                     <p className="text-white/40 text-sm">{allImages.length} photos</p>
                     <label className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors ${isUploadingGallery
-                        ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                        : 'bg-white/10 hover:bg-white/20 text-white shadow-lg'
+                      ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                      : 'bg-white/10 hover:bg-white/20 text-white shadow-lg'
                       }`}>
                       <Upload size={14} />
                       {isUploadingGallery ? 'Uploading...' : 'Upload Photos'}
