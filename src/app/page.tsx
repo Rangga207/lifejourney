@@ -233,8 +233,44 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
           className="relative z-10 flex flex-col min-h-screen"
         >
+          {/* Header */}
+          <header className="relative z-10 pt-[max(3.5rem,env(safe-area-inset-top)+0.5rem)] pb-4 text-center px-6">
+            <AnimatePresence>
+              {titleVisible && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                >
+                  <motion.div
+                    className="flex flex-col items-center justify-center"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    {/* Celestial Orbit Divider */}
+                    <div className="flex items-center gap-4 mb-2 opacity-80">
+                      <span className="text-[9px] sm:text-[11px] uppercase tracking-[0.5em] text-white/80 font-light ml-[0.25em]">
+                        Final Chapter
+                      </span>
+                    </div>
+
+                    {/* Starry Text */}
+                    <motion.p
+                      className="flex items-center justify-center gap-3 text-white/40 text-[11px] sm:text-[13px] font-light tracking-[0.2em] uppercase w-full max-w-2xl mx-auto"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8, duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                    </motion.p>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </header>
+
           {/* Floating Apple-style Header */}
-          <div className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+          <div className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-6">
             <motion.div
               layout
               initial={{ y: -20, opacity: 0 }}
@@ -339,42 +375,6 @@ export default function HomePage() {
               </AnimatePresence>
             </motion.div>
           </div>
-
-          {/* Header */}
-          <header className="relative z-10 pt-[max(5.5rem,env(safe-area-inset-top)+2.5rem)] pb-4 text-center px-6">
-            <AnimatePresence>
-              {titleVisible && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
-                >
-                  <motion.div
-                    className="flex flex-col items-center justify-center"
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    {/* Celestial Orbit Divider */}
-                    <div className="flex items-center gap-4 mb-5 opacity-80">
-                      <span className="text-[9px] sm:text-[11px] uppercase tracking-[0.5em] text-white/80 font-light ml-[0.25em]">
-                        Final Chapter
-                      </span>
-                    </div>
-
-                    {/* Starry Text */}
-                    <motion.p
-                      className="flex items-center justify-center gap-3 text-white/40 text-[11px] sm:text-[13px] font-light tracking-[0.2em] uppercase w-full max-w-2xl mx-auto"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.8, duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                    </motion.p>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </header>
 
           {/* Search bar */}
           <section className="relative z-10 px-4 max-w-md mx-auto mb-10">
