@@ -110,16 +110,6 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
                     </div>
                 )}
 
-                <div className="flex items-center justify-between mb-1.5 text-white/40 font-mono text-[9px] tracking-widest relative z-10">
-                    <span className={`uppercase font-semibold ${colorSet.textAccent}`}>
-                        {memory.isGalleryOnly ? 'LIFE UPDATE' : 'JOURNAL ENTRY'}
-                    </span>
-                    <div className="flex items-center gap-1 font-light">
-                        <Calendar size={9} />
-                        <span>{memory.date}</span>
-                    </div>
-                </div>
-
                 <div className="flex items-start justify-between gap-3 mb-2 relative z-10">
                     <h3 className="font-serif font-medium text-white text-lg leading-snug line-clamp-2 flex-1 group-hover:text-white/90 transition-colors">
                         {memory.title}
@@ -140,6 +130,10 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
                 <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap line-clamp-4 relative z-10 font-light">
                     {memory.content}
                 </p>
+                <div className="flex items-center gap-1 mt-3.5 text-white/30 relative z-10 font-light text-[10px]">
+                    <Calendar size={10} />
+                    <span>{memory.date}</span>
+                </div>
             </motion.div>
 
             {/* Expanded Modal */}
