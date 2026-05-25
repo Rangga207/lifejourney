@@ -54,11 +54,11 @@ function OrbitingMercury() {
                                 float t2 = smoothstep(0.35, 0.75, v);
                                 float t3 = smoothstep(0.65, 1.0, v);
                                 
-                                // Premium Cinematic Palette
-                                vec3 c_low = vec3(0.02, 0.04, 0.3);   // Intense Deep Space Blue
-                                vec3 c_mid = vec3(0.12, 0.35, 0.95);  // Electric Royal Blue
-                                vec3 c_high = vec3(0.8, 0.5, 0.15);   // Rich Copper
-                                vec3 c_peak = vec3(1.0, 0.95, 0.6);   // Blinding Radiance Yellow
+                                // Premium Cinematic Sunset/Nebula Palette
+                                vec3 c_low = vec3(0.05, 0.02, 0.15);   // Deep Indigo-Purple
+                                vec3 c_mid = vec3(0.35, 0.12, 0.65);   // Rich Magenta-Purple (Nebula)
+                                vec3 c_high = vec3(0.92, 0.38, 0.22);  // Cozy Sunset Orange-Rose
+                                vec3 c_peak = vec3(1.0, 0.85, 0.55);   // Warm Golden Starlight
                                 
                                 vec3 finalColor = mix(c_low, c_mid, t1);
                                 finalColor = mix(finalColor, c_high, t2);
@@ -79,9 +79,9 @@ function OrbitingMercury() {
             {/* Cinematic Multilayered Atmospheric Glow to hide hard polygon edges */}
             <Sphere args={[radius + 0.2, 32, 32]} position={[posX, posY, -30]}>
                 <meshBasicMaterial
-                    color="#60a5fa"
+                    color="#f43f5e" // Sunset Rose Glow
                     transparent
-                    opacity={0.05}
+                    opacity={0.08}
                     blending={THREE.AdditiveBlending}
                     side={THREE.BackSide}
                     depthWrite={false}
@@ -89,9 +89,9 @@ function OrbitingMercury() {
             </Sphere>
             <Sphere args={[radius + 0.6, 16, 16]} position={[posX, posY, -30]}>
                 <meshBasicMaterial
-                    color="#1e3a8a"
+                    color="#7c3aed" // Nebula Violet Glow
                     transparent
-                    opacity={0.03}
+                    opacity={0.04}
                     blending={THREE.AdditiveBlending}
                     side={THREE.BackSide}
                     depthWrite={false}
@@ -149,15 +149,15 @@ export default function SpaceObjects({ memories = [] }: { memories?: Memory[] })
             <ambientLight intensity={0.03} />
 
             {/* Dramatic sunlight blasting from the distant sun */}
-            <directionalLight position={[-35, 25, -15]} intensity={3.5} color="#ffffff" />
+            <directionalLight position={[-35, 25, -15]} intensity={3.5} color="#ffedd5" />
 
             {/* Extremely faint blue starlight fill from the back */}
-            <directionalLight position={[20, -10, -20]} intensity={0.15} color="#0284c7" />
+            <directionalLight position={[20, -10, -20]} intensity={0.15} color="#ec4899" />
 
             {/* Deep Space Nebula Glow (Subtle cosmic dust) */}
             <Sphere args={[50, 32, 32]} position={[0, 0, -45]}>
                 <meshBasicMaterial
-                    color="#4c1d95" // Deep cosmic purple
+                    color="#8b5cf6" // Ambient violet-indigo
                     transparent
                     opacity={0.08}
                     blending={THREE.AdditiveBlending}
