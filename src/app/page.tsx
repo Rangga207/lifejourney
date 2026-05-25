@@ -27,6 +27,7 @@ export default function HomePage() {
   const [notesView, setNotesView] = useState<'grid' | 'timeline'>('grid');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSpaceBlurred, setIsSpaceBlurred] = useState(false);
 
   const filteredMemories = useMemo(() => {
     const filtered = memories.filter(m =>
@@ -208,10 +209,18 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-[100dvh]">
-      {/* 3D Background */}
-      <ErrorBoundary>
-        <CanvasScene memories={memories} />
-      </ErrorBoundary>
+      {/* 3D Background with Zorin-esque spatial blur (DoF) and subtle scale interpolation */}
+      <div 
+        className="fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        style={{
+          filter: isSpaceBlurred ? 'blur(6px) saturate(85%)' : 'blur(0px) saturate(100%)',
+          transform: isSpaceBlurred ? 'scale(1.025)' : 'scale(1)',
+        }}
+      >
+        <ErrorBoundary>
+          <CanvasScene memories={memories} />
+        </ErrorBoundary>
+      </div>
 
       {/* Radial gradient vignette overlay */}
       <div
@@ -249,8 +258,11 @@ export default function HomePage() {
                     transition={{ delay: 0.5, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
                   >
                     {/* Celestial Orbit Divider */}
-                    <div className="flex items-center gap-4 mb-2 opacity-80">
-                      <span className="text-[9px] sm:text-[11px] uppercase tracking-[0.5em] text-white/80 font-light ml-[0.25em]">
+                    <div className="flex items-center gap-4 mb-2 opacity-90">
+                      <span 
+                        className="text-[10px] sm:text-[12px] uppercase tracking-[0.55em] text-white font-extralight ml-[0.25em]"
+                        style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                      >
                         Final Chapter
                       </span>
                     </div>
@@ -397,7 +409,7 @@ export default function HomePage() {
             <AnimatePresence mode="wait">
               {activeTab === 'memories' ? (
                 <motion.div
-                  key={`memories-${notesView}-${sortOrder}`}
+                  key="memories-main-view"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -520,6 +532,7 @@ export default function HomePage() {
                           onDelete={handleDelete}
                           onUpdate={handleUpdate}
                           isInitialLoad={initialLoad}
+                          onFocusChange={setIsSpaceBlurred}
                         />
                       ))}
                     </div>
@@ -537,20 +550,27 @@ export default function HomePage() {
                             initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: Math.min(i * 0.07, 0.5), duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                            className={`relative flex items-start mb-8 sm:mb-10 ${
+                            className={`relative flex items-start mb-8 sm:mb-10 group ${
                               isLeft
                                 ? 'flex-row pl-10 sm:pl-0 sm:pr-[calc(50%+1.5rem)]'
                                 : 'flex-row pl-10 sm:pl-[calc(50%+1.5rem)] sm:pr-0'
                             }`}
                           >
                             {/* Timeline dot */}
-                            <div className={`absolute top-5 flex items-center justify-center ${
+                            <div className={`absolute top-5 flex items-center justify-center z-10 ${
                               isLeft
                                 ? 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
                                 : 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
                             }`}>
-                              <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-white/40 shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+                              <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-white/40 shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:scale-125 group-hover:border-white/80 transition-all duration-500" />
                             </div>
+
+                            {/* Horizontal constellation connector line */}
+                            <div className={`absolute top-[26px] hidden sm:block h-px w-6 bg-gradient-to-r transition-all duration-700 pointer-events-none ${
+                              isLeft
+                                ? 'right-0 from-white/25 to-transparent group-hover:from-white/60 group-hover:scale-x-125 origin-right'
+                                : 'left-0 from-transparent to-white/25 group-hover:to-white/60 group-hover:scale-x-125 origin-left'
+                            }`} />
 
                             {/* Card */}
                             <div className="w-full">
@@ -560,6 +580,7 @@ export default function HomePage() {
                                 onDelete={handleDelete}
                                 onUpdate={handleUpdate}
                                 isInitialLoad={false}
+                                onFocusChange={setIsSpaceBlurred}
                               />
                             </div>
                           </motion.div>

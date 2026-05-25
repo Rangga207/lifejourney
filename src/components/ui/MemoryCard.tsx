@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Calendar, Maximize2, ImagePlus } from 'lucide-react';
 import { type Memory } from '@/app/actions';
@@ -31,19 +31,51 @@ export const CARD_COLORS = [
     },
 ];
 
+// Extremely fast offscreen canvas dominant color extractor
+function getDominantColor(imgUrl: string): Promise<string> {
+    return new Promise((resolve) => {
+        if (!imgUrl) return resolve('');
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1;
+                canvas.height = 1;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, 1, 1);
+                    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+                    resolve(`${r}, ${g}, ${b}`);
+                } else {
+                    resolve('');
+                }
+            } catch (e) {
+                resolve('');
+            }
+        };
+        img.onerror = () => {
+            resolve('');
+        };
+        img.src = imgUrl;
+    });
+}
+
 interface MemoryCardProps {
     memory: Memory;
     index: number;
     onDelete: (id: string) => void;
     onUpdate?: (id: string, data: Partial<Memory>) => void;
     isInitialLoad?: boolean;
+    onFocusChange?: (focused: boolean) => void;
 }
 
-export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = false }: MemoryCardProps) {
+export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = false, onFocusChange }: MemoryCardProps) {
     const [expanded, setExpanded] = useState(false);
     const [fullImage, setFullImage] = useState<string | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
+    const [extractedAccent, setExtractedAccent] = useState<string | null>(null);
 
     const colorIndex = index % CARD_COLORS.length;
     const colorSet = CARD_COLORS[colorIndex];
@@ -53,14 +85,33 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
     const allImages = memory.imageUrls || (memory.imageUrl ? [memory.imageUrl] : []);
     const displayImage = allImages[0];
 
+    useEffect(() => {
+        if (displayImage) {
+            getDominantColor(displayImage).then((color) => {
+                if (color) {
+                    setExtractedAccent(color);
+                }
+            });
+        } else {
+            setExtractedAccent(null);
+        }
+    }, [displayImage]);
+
+    const accentRgb = extractedAccent || colorSet.accentRgb;
+
     return (
         <>
             <motion.div
+                layoutId={`card-${memory.id}`}
                 initial={{ opacity: 0, y: 40, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.85, y: -10 }}
                 transition={{ duration: 0.8, delay: animDelay, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -4, scale: 1.015 }}
+                whileHover={{ 
+                    y: -6, 
+                    scale: 1.02,
+                    boxShadow: `0 24px 60px -8px rgba(${accentRgb}, 0.22), 0 8px 24px -6px rgba(0,0,0,0.6), inset 0 1px 1px 0 rgba(255,255,255,0.15)`
+                }}
                 onMouseMove={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     setMousePos({
@@ -68,11 +119,17 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
                         y: e.clientY - rect.top,
                     });
                 }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                onMouseEnter={() => {
+                    setIsHovered(true);
+                    onFocusChange?.(true);
+                }}
+                onMouseLeave={() => {
+                    setIsHovered(false);
+                    onFocusChange?.(false);
+                }}
                 className={`break-inside-avoid mb-5 cursor-pointer relative rounded-2xl p-5 glass-card bg-gradient-to-br ${colorSet.bg} border ${colorSet.border} transition-all duration-500 group overflow-hidden`}
                 style={{ 
-                    boxShadow: `0 8px 32px -4px rgba(${colorSet.accentRgb}, 0.04), inset 0 1px 1px 0 rgba(255,255,255,0.05)`
+                    boxShadow: `0 12px 40px -8px rgba(${accentRgb}, 0.08), 0 4px 12px -4px rgba(0,0,0,0.5), inset 0 1px 1px 0 rgba(255,255,255,0.08)`
                 }}
                 onClick={() => setExpanded(true)}
             >
@@ -81,7 +138,7 @@ export function MemoryCard({ memory, index, onDelete, onUpdate, isInitialLoad = 
                     <div
                         className="absolute inset-0 pointer-events-none transition-opacity duration-300"
                         style={{
-                            background: `radial-gradient(150px circle at ${mousePos.x}px ${mousePos.y}px, rgba(${colorSet.accentRgb}, 0.12), transparent 80%)`,
+                            background: `radial-gradient(150px circle at ${mousePos.x}px ${mousePos.y}px, rgba(${accentRgb}, 0.12), transparent 80%)`,
                         }}
                     />
                 )}

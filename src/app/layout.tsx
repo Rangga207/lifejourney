@@ -34,8 +34,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${sans.variable} ${serif.variable} antialiased bg-background text-foreground`}
+        className={`${sans.variable} ${serif.variable} antialiased bg-background text-foreground relative`}
       >
+        <div className="noise-overlay" />
         {children}
       </body>
     </html>

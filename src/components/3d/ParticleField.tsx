@@ -194,6 +194,80 @@ export default function ParticleField({ count = 900 }: { count?: number }) {
             />
         </points>
         <ForegroundDust mouseRef={mouseRef} />
+        <CosmicStardust />
         </>
+    );
+}
+
+function CosmicStardust({ count = 90 }) {
+    const dustRef = useRef<THREE.Points>(null);
+    
+    const { positions, colors } = useMemo(() => {
+        const pos = new Float32Array(count * 3);
+        const col = new Float32Array(count * 3);
+        
+        // Dynamic colors: soft pinks, cyans, golden ambers, violets
+        const palette = [
+            new THREE.Color('#ec4899'),
+            new THREE.Color('#06b6d4'),
+            new THREE.Color('#f59e0b'),
+            new THREE.Color('#8b5cf6')
+        ];
+        
+        for (let i = 0; i < count; i++) {
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = 4 + Math.random() * 12;
+            
+            pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            pos[i * 3 + 2] = r * Math.cos(phi);
+            
+            const randomColor = palette[Math.floor(Math.random() * palette.length)];
+            col[i * 3] = randomColor.r;
+            col[i * 3 + 1] = randomColor.g;
+            col[i * 3 + 2] = randomColor.b;
+        }
+        return { positions: pos, colors: col };
+    }, [count]);
+
+    useFrame((state, delta) => {
+        if (dustRef.current) {
+            dustRef.current.rotation.y += delta * 0.006;
+            dustRef.current.rotation.x -= delta * 0.003;
+            dustRef.current.rotation.z += delta * 0.002;
+        }
+    });
+
+    return (
+        <points ref={dustRef}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+                <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+            </bufferGeometry>
+            <pointsMaterial 
+                size={0.16} 
+                vertexColors={true}
+                transparent 
+                opacity={0.35} 
+                sizeAttenuation={true}
+                depthWrite={false}
+                blending={THREE.AdditiveBlending}
+                onBeforeCompile={(shader) => {
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        `#include <premultiplied_alpha_fragment>`,
+                        `
+                        #include <premultiplied_alpha_fragment>
+                        float dist = distance(gl_PointCoord, vec2(0.5));
+                        if (dist > 0.5) discard;
+                        float alpha = pow(1.0 - (dist * 2.0), 2.2);
+                        gl_FragColor.a *= alpha;
+                        `
+                    );
+                }}
+            />
+        </points>
     );
 }
