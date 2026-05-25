@@ -52,14 +52,14 @@ const fragmentShader = /* glsl */ `
     );
   }
 
-  /* ── 6-octave Fractal Brownian Motion ───────────────────── */
+  /* ── 3-octave Fractal Brownian Motion (Optimized) ───────── */
   float fbm(vec2 p) {
     float v = 0.0;
     float a = 0.5;
     vec2  shift = vec2(100.0);
     /* Rotation matrix to reduce axis-aligned artefacts */
     mat2  rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 3; i++) {
       v += a * noise(p);
       p = rot * p * 2.1 + shift;
       a *= 0.5;
@@ -71,18 +71,13 @@ const fragmentShader = /* glsl */ `
     /* Map UV to centred [-1, 1] space, apply per-cloud scale */
     vec2 uv = (vUv * 2.0 - 1.0) * uScale;
 
-    /* Two-level domain warp for organic, turbulent shapes */
+    /* Single-level high-performance domain warp for organic fluid shapes */
     float t = uTime * 0.018;
     vec2 q = vec2(
-      fbm(uv + vec2(0.0, 0.0) + t),
-      fbm(uv + vec2(5.2, 1.3))
+      fbm(uv + t),
+      fbm(uv + vec2(5.2, 1.3) + t * 0.3)
     );
-    vec2 r = vec2(
-      fbm(uv + 4.0 * q + vec2(1.7, 9.2) + t * 0.5),
-      fbm(uv + 4.0 * q + vec2(8.3, 2.8))
-    );
-
-    float f = fbm(uv + 5.0 * r);
+    float f = fbm(uv + 3.0 * q);
 
     /* Three-way colour blend based on noise density */
     float t1 = clamp(pow(f, 2.0) * 4.0, 0.0, 1.0);
@@ -173,81 +168,42 @@ function NebulaLayer({
 export default function NebulaCloud() {
   return (
     <group>
-      {/* ── Layer 1: Deep violet-purple mass (largest, furthest back) */}
+      {/* ── Layer 1: Deep violet-purple mass (largest, deepest back) */}
       <NebulaLayer
         position={[0, 2, -55]}
-        size={120}
+        size={135}
         color1="#0d0221"   // void black-purple
         color2="#6b21a8"   // deep violet
         color3="#a855f7"   // bright purple
-        opacity={0.55}
-        scale={1.2}
-        speed={0.7}
-      />
-
-      {/* ── Layer 2: Magenta/rose cloud — upper right bloom */}
-      <NebulaLayer
-        position={[18, 6, -48]}
-        rotation={[0, 0, 0.4]}
-        size={80}
-        color1="#1a0a1a"   // dark base
-        color2="#9d174d"   // deep rose
-        color3="#ec4899"   // vivid pink
-        opacity={0.45}
-        scale={1.4}
-        speed={0.9}
-      />
-
-      {/* ── Layer 3: Teal/cyan cloud — lower left cool drift */}
-      <NebulaLayer
-        position={[-20, -8, -45]}
-        rotation={[0, 0, -0.3]}
-        size={75}
-        color1="#042f2e"   // dark teal base
-        color2="#0e7490"   // ocean blue
-        color3="#22d3ee"   // bright cyan
-        opacity={0.35}
-        scale={1.3}
-        speed={1.1}
-      />
-
-      {/* ── Layer 4: Indigo-blue mid layer — centre depth fill */}
-      <NebulaLayer
-        position={[-5, -3, -42]}
-        rotation={[0.1, 0, 0.2]}
-        size={90}
-        color1="#1e1b4b"   // deep indigo
-        color2="#3730a3"   // blue-indigo
-        color3="#818cf8"   // periwinkle
-        opacity={0.3}
-        scale={1.0}
-        speed={0.6}
-      />
-
-      {/* ── Layer 5: Warm amber/gold accent — subtle warmth */}
-      <NebulaLayer
-        position={[10, 10, -50]}
-        rotation={[0, 0, 0.8]}
-        size={65}
-        color1="#1a0a00"   // dark ember
-        color2="#92400e"   // deep amber
-        color3="#f59e0b"   // golden
-        opacity={0.18}
-        scale={1.5}
+        opacity={0.5}
+        scale={1.1}
         speed={0.5}
       />
 
-      {/* ── Layer 6: Thin rose-violet wisp — near-field sparkle */}
+      {/* ── Layer 2: Warm rose/gold bloom — upper right warm glow */}
       <NebulaLayer
-        position={[-12, 5, -35]}
-        rotation={[0, 0, -0.6]}
-        size={55}
-        color1="#0f0520"   // near void
-        color2="#7e22ce"   // royal purple
-        color3="#f0abfc"   // soft lilac
-        opacity={0.22}
-        scale={1.8}
-        speed={1.3}
+        position={[15, 5, -48]}
+        rotation={[0, 0, 0.4]}
+        size={90}
+        color1="#1a0a1a"   // dark base
+        color2="#9d174d"   // deep rose
+        color3="#f59e0b"   // warm amber/gold
+        opacity={0.4}
+        scale={1.3}
+        speed={0.6}
+      />
+
+      {/* ── Layer 3: Cool Teal/Cyan/Indigo drift — lower left cool drift */}
+      <NebulaLayer
+        position={[-15, -6, -44]}
+        rotation={[0, 0, -0.3]}
+        size={85}
+        color1="#042f2e"   // dark teal base
+        color2="#0e7490"   // ocean blue
+        color3="#22d3ee"   // bright cyan
+        opacity={0.3}
+        scale={1.2}
+        speed={0.8}
       />
     </group>
   );

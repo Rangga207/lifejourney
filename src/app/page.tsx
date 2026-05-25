@@ -26,6 +26,7 @@ export default function HomePage() {
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [notesView, setNotesView] = useState<'grid' | 'timeline'>('grid');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const filteredMemories = useMemo(() => {
     const filtered = memories.filter(m =>
@@ -63,6 +64,14 @@ export default function HomePage() {
       setIsAuthenticated(false);
     }
     getMemories().then(data => setMemories(data));
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -224,9 +233,116 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
           className="relative z-10 flex flex-col min-h-screen"
         >
+          {/* Floating Apple-style Header */}
+          <motion.div
+            initial={{ y: -20, x: '-50%', opacity: 0 }}
+            animate={{ y: 0, x: '-50%', opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            style={{
+              position: 'fixed',
+              top: '24px',
+              left: '50%',
+              zIndex: 50,
+              width: 'max-content',
+              maxWidth: '90vw',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              border: '0.5px solid rgba(255,255,255,0.12)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              transition: 'background-color 0.3s ease, border-color 0.3s ease',
+            }}
+            className={`${
+              isScrolled
+                ? 'bg-[rgba(10,0,30,0.65)] backdrop-blur-[20px] saturate-[180%]'
+                : 'bg-[rgba(255,255,255,0.08)] backdrop-blur-[20px] saturate-[180%]'
+            }`}
+          >
+            {/* Tabs switcher (Notes / Life Updates) */}
+            <div className="flex bg-white/5 p-0.5 rounded-full border border-white/5">
+              <button
+                onClick={() => setActiveTab('memories')}
+                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  activeTab === 'memories'
+                    ? 'bg-white/10 text-white shadow-md'
+                    : 'text-white/40 hover:text-white/80'
+                }`}
+              >
+                <LayoutGrid size={13} />
+                <span>Notes</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('gallery')}
+                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  activeTab === 'gallery'
+                    ? 'bg-white/10 text-white shadow-md'
+                    : 'text-white/40 hover:text-white/80'
+                }`}
+              >
+                <ImageIcon size={13} />
+                <span>Updates</span>
+              </button>
+            </div>
+
+            {/* Separator / Divider - only if activeTab is 'memories' */}
+            {activeTab === 'memories' && (
+              <div className="w-px h-4 bg-white/10" />
+            )}
+
+            {/* Notes-only controls: view toggle + sort */}
+            <AnimatePresence mode="wait">
+              {activeTab === 'memories' && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center gap-2"
+                >
+                  {/* View toggle: Grid / Timeline */}
+                  <div className="flex bg-white/5 p-0.5 rounded-full border border-white/5">
+                    <button
+                      onClick={() => setNotesView('grid')}
+                      title="Grid view"
+                      className={`p-1.5 rounded-full transition-all ${
+                        notesView === 'grid'
+                          ? 'bg-white/10 text-white'
+                          : 'text-white/30 hover:text-white/70'
+                      }`}
+                    >
+                      <LayoutGrid size={12} />
+                    </button>
+                    <button
+                      onClick={() => setNotesView('timeline')}
+                      title="Timeline view"
+                      className={`p-1.5 rounded-full transition-all ${
+                        notesView === 'timeline'
+                          ? 'bg-white/10 text-white'
+                          : 'text-white/30 hover:text-white/70'
+                      }`}
+                    >
+                      <AlignLeft size={12} />
+                    </button>
+                  </div>
+
+                  {/* Sort toggle */}
+                  <button
+                    onClick={() => setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'))}
+                    title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-white/5 border border-white/5 rounded-full text-white/40 hover:text-white/80 hover:bg-white/10 transition-all text-[10px] font-medium"
+                  >
+                    <ArrowUpDown size={10} />
+                    <span>{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
           {/* Header */}
-          <header className="relative z-10 pt-[max(3rem,env(safe-area-inset-top))] pb-6 text-center px-6">
+          <header className="relative z-10 pt-[max(5.5rem,env(safe-area-inset-top)+2.5rem)] pb-4 text-center px-6">
             <AnimatePresence>
               {titleVisible && (
                 <motion.div
@@ -261,78 +377,18 @@ export default function HomePage() {
             </AnimatePresence>
           </header>
 
-          {/* Navigation & Search */}
-          <section className="relative z-10 px-4 max-w-4xl mx-auto mb-8 flex flex-col gap-3">
-            {/* Tab switcher row */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-                <button
-                  onClick={() => setActiveTab('memories')}
-                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'memories' ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
-                >
-                  <LayoutGrid size={15} /> Notes
-                </button>
-                <button
-                  onClick={() => setActiveTab('gallery')}
-                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'gallery' ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
-                >
-                  <ImageIcon size={15} /> Life Updates
-                </button>
-              </div>
-
-              {/* Notes-only controls: view toggle + sort */}
-              <AnimatePresence>
-                {activeTab === 'memories' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center gap-2"
-                  >
-                    {/* View toggle: Grid / Timeline */}
-                    <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-                      <button
-                        onClick={() => setNotesView('grid')}
-                        title="Grid view"
-                        className={`p-2 rounded-lg transition-all ${notesView === 'grid' ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/70'}`}
-                      >
-                        <LayoutGrid size={14} />
-                      </button>
-                      <button
-                        onClick={() => setNotesView('timeline')}
-                        title="Timeline view"
-                        className={`p-2 rounded-lg transition-all ${notesView === 'timeline' ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/70'}`}
-                      >
-                        <AlignLeft size={14} />
-                      </button>
-                    </div>
-
-                    {/* Sort toggle */}
-                    <button
-                      onClick={() => setSortOrder(s => s === 'newest' ? 'oldest' : 'newest')}
-                      title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white/40 hover:text-white/80 hover:bg-white/10 transition-all text-xs font-medium"
-                    >
-                      <ArrowUpDown size={12} />
-                      <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Search bar - full width row */}
+          {/* Search bar */}
+          <section className="relative z-10 px-4 max-w-4xl mx-auto mb-8">
             <div className="relative w-full group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors">
-                <Search size={16} />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/25 group-focus-within:text-white/60 transition-colors">
+                <Search size={15} />
               </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search memories..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/30 focus:bg-white/10 transition-all font-light"
+                className="w-full bg-white/4 border border-white/8 rounded-2xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-1 focus:ring-white/25 focus:bg-white/8 transition-all font-light"
               />
             </div>
           </section>

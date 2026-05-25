@@ -77,7 +77,7 @@ function OrbitingMercury() {
             </Sphere>
 
             {/* Cinematic Multilayered Atmospheric Glow to hide hard polygon edges */}
-            <Sphere args={[radius + 0.2, 64, 64]} position={[posX, posY, -30]}>
+            <Sphere args={[radius + 0.2, 32, 32]} position={[posX, posY, -30]}>
                 <meshBasicMaterial
                     color="#60a5fa"
                     transparent
@@ -87,7 +87,7 @@ function OrbitingMercury() {
                     depthWrite={false}
                 />
             </Sphere>
-            <Sphere args={[radius + 0.6, 32, 32]} position={[posX, posY, -30]}>
+            <Sphere args={[radius + 0.6, 16, 16]} position={[posX, posY, -30]}>
                 <meshBasicMaterial
                     color="#1e3a8a"
                     transparent
