@@ -521,18 +521,19 @@ export default function HomePage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="relative z-10 px-4 max-w-xs mx-auto mb-3"
+                className="relative z-10 flex justify-center mb-3 px-4"
               >
-                <div className="relative w-full group">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors duration-300">
-                    <Search size={12} />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/60 transition-colors duration-300">
+                    <Search size={11} />
                   </div>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Nyari apa cil?"
-                    className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-md"
+                    className="bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-1.5 pl-8 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-md"
+                    style={{ width: searchQuery ? `${Math.max(155, searchQuery.length * 8 + 60)}px` : '155px' }}
                   />
                 </div>
               </motion.section>
