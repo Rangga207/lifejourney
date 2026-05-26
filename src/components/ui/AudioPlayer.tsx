@@ -129,9 +129,9 @@ export default function AudioPlayer({ visible = true }: { visible?: boolean }) {
         <>
             {/* Audio sources */}
             <audio ref={audioRef} src="/audio/loveephipnay.mp3" loop preload="metadata" />
-            <audio ref={rainRef} src="https://www.soundjay.com/nature/sounds/rain-07.mp3" loop preload="metadata" />
-            <audio ref={fireRef} src="https://www.soundjay.com/nature/sounds/fire-1.mp3" loop preload="metadata" />
-            <audio ref={windRef} src="https://www.soundjay.com/nature/sounds/wind-weather-01.mp3" loop preload="metadata" />
+            <audio ref={rainRef} src="https://raw.githubusercontent.com/karthiknvd/noctune/master/sounds/rain.mp3" loop preload="metadata" />
+            <audio ref={fireRef} src="https://raw.githubusercontent.com/karthiknvd/noctune/master/sounds/campfire.mp3" loop preload="metadata" />
+            <audio ref={windRef} src="https://raw.githubusercontent.com/karthiknvd/noctune/master/sounds/wind.mp3" loop preload="metadata" />
 
             <AnimatePresence>
                 {isReady && visible && (

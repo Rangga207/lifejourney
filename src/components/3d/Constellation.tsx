@@ -28,6 +28,13 @@ function MemoryStar({
 }) {
     const glowRef = useRef<THREE.Mesh>(null);
     const starRef = useRef<THREE.Mesh>(null);
+    const orbitRefs = useRef<THREE.Group>(null);
+
+    // Orbiting stardust configuration
+    const orbitCount = 6;
+    const orbitSpeed = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * 2.0 + 1.2), []);
+    const orbitRadius = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * 0.16 + 0.14), []);
+    const orbitPhase = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * Math.PI * 2), []);
 
     useFrame((state) => {
         const time = state.clock.getElapsedTime();
@@ -35,10 +42,10 @@ function MemoryStar({
         if (glowRef.current) {
             // Pulse scale and opacity dynamically
             const pulse = Math.sin(time * 2.5 + memory.title.charCodeAt(0)) * 0.2;
-            glowRef.current.scale.setScalar(1.6 + pulse);
+            glowRef.current.scale.setScalar(1.8 + pulse);
             const material = glowRef.current.material as THREE.MeshBasicMaterial;
             if (material) {
-                material.opacity = 0.12 + pulse * 0.05;
+                material.opacity = 0.15 + pulse * 0.05;
             }
         }
         
@@ -50,6 +57,30 @@ function MemoryStar({
             const floatOffset = Math.sin(time + memory.title.charCodeAt(0)) * 0.02;
             starRef.current.position.y = floatOffset;
         }
+
+        if (orbitRefs.current) {
+            // Animate orbiting particles
+            const children = orbitRefs.current.children;
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i] as THREE.Mesh;
+                if (child) {
+                    const speed = orbitSpeed[i];
+                    const rad = orbitRadius[i];
+                    const phase = orbitPhase[i];
+                    const angle = time * speed + phase;
+                    child.position.set(
+                        Math.cos(angle) * rad,
+                        Math.sin(angle) * rad * 0.4,
+                        Math.sin(angle) * rad * 0.8
+                    );
+                    
+                    const childMat = child.material as THREE.MeshBasicMaterial;
+                    if (childMat) {
+                        childMat.opacity = 0.25 + Math.sin(time * 4 + i) * 0.15;
+                    }
+                }
+            }
+        }
     });
 
     const starColor = memory.color || '#c084fc'; // Default to Dusk Violet accent
@@ -58,17 +89,17 @@ function MemoryStar({
         <group position={position}>
             {/* Glowing atmosphere */}
             <mesh ref={glowRef}>
-                <sphereGeometry args={[0.24, 16, 16]} />
+                <sphereGeometry args={[0.26, 16, 16]} />
                 <meshBasicMaterial
                     color={starColor}
                     transparent
-                    opacity={0.15}
+                    opacity={0.16}
                     blending={THREE.AdditiveBlending}
                     depthWrite={false}
                 />
             </mesh>
 
-            {/* Solid crystal core */}
+            {/* Glowing crystal core */}
             <mesh
                 ref={starRef}
                 onClick={(e) => {
@@ -84,15 +115,31 @@ function MemoryStar({
                     onBlur();
                 }}
             >
-                <octahedronGeometry args={[0.13, 0]} />
+                <octahedronGeometry args={[0.08, 1]} /> {/* Soft geodesic sphere-like crystal */}
                 <meshStandardMaterial
                     color={starColor}
                     emissive={starColor}
-                    emissiveIntensity={1.2}
-                    roughness={0.1}
+                    emissiveIntensity={1.8}
+                    roughness={0.0}
                     metalness={0.9}
                 />
             </mesh>
+
+            {/* Orbiting Stardust Cluster (blends star with the space dust environment) */}
+            <group ref={orbitRefs}>
+                {Array.from({ length: orbitCount }).map((_, idx) => (
+                    <mesh key={idx}>
+                        <sphereGeometry args={[0.013, 8, 8]} />
+                        <meshBasicMaterial
+                            color={starColor}
+                            transparent
+                            opacity={0.4}
+                            blending={THREE.AdditiveBlending}
+                            depthWrite={false}
+                        />
+                    </mesh>
+                ))}
+            </group>
 
             {/* Immersive Tooltip overlay */}
             {isHovered && (
@@ -129,13 +176,13 @@ function CameraRig({
     // Keep track of the current lookAt point to interpolate camera lookAt transitions smoothly
     const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
 
-    useFrame((state) => {
+    useFrame((state, delta) => {
         const activeIndex = memories.findIndex((m) => m.id === activeMemoryId);
         
         if (activeMemoryId && activeIndex !== -1 && points[activeIndex]) {
             const nodePos = points[activeIndex];
-            // Position camera close in front of the selected star node
-            targetPos.current.set(nodePos.x, nodePos.y, nodePos.z + 2.2);
+            // Gorgeous 3/4 perspective offset view of the selected node
+            targetPos.current.set(nodePos.x + 0.6, nodePos.y + 0.4, nodePos.z + 1.8);
             targetLookAt.current.copy(nodePos);
         } else {
             // Home floating camera parallax based on mouse
@@ -145,11 +192,12 @@ function CameraRig({
             targetLookAt.current.set(0, 0, 0);
         }
 
-        // Interpolate camera position
-        camera.position.lerp(targetPos.current, 0.05);
-
-        // Interpolate lookAt point
-        currentLookAt.current.lerp(targetLookAt.current, 0.05);
+        // Framerate-independent exponential smoothing
+        const lerpSpeed = activeMemoryId ? 3.0 : 1.8;
+        const t = 1.0 - Math.exp(-lerpSpeed * delta);
+        
+        camera.position.lerp(targetPos.current, t);
+        currentLookAt.current.lerp(targetLookAt.current, t);
         camera.lookAt(currentLookAt.current);
     });
 
