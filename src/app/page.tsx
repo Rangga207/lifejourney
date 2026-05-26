@@ -132,7 +132,7 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
-  // Auto-zoom camera to matching star when searching — does NOT open modal (no activeMemoryId dep = no clashing)
+  // Auto-zoom camera to matching star when searching — does NOT open modal to ensure dreamy lag-free animations
   useEffect(() => {
     if (searchQuery.trim() !== '') {
       const matched = memories.find(m =>
@@ -142,9 +142,10 @@ export default function HomePage() {
       );
       setCameraFocusId(matched ? matched.id : null);
     } else {
-      setCameraFocusId(null);
+      // When search is cleared, fall back to the open card's star focus, or null (overview) if none is open
+      setCameraFocusId(activeMemoryId);
     }
-  }, [searchQuery, memories]);
+  }, [searchQuery, memories, activeMemoryId]);
 
   const handleLoginSuccess = () => {
     localStorage.setItem('memory_auth', 'true');
