@@ -683,9 +683,9 @@ export default function HomePage() {
                           onUpdate={handleUpdate}
                           isInitialLoad={initialLoad}
                           onFocusChange={setIsSpaceBlurred}
-                          onModalToggle={() => setActiveMemoryId(memory.id)}
+                          onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
                           isExpanded={activeMemoryId === memory.id}
-                          onClose={() => setActiveMemoryId(null)}
+                          onClose={() => handleModalToggle(memory.id, false)}
                         />
                       ))}
                     </div>
@@ -733,7 +733,7 @@ export default function HomePage() {
                                 onFocusChange={setIsSpaceBlurred}
                                 onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
                                 isExpanded={activeMemoryId === memory.id}
-                                onClose={() => { setActiveMemoryId(null); }}
+                                onClose={() => handleModalToggle(memory.id, false)}
                               />
                             </div>
                           </motion.div>
