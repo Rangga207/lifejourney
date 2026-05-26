@@ -227,10 +227,10 @@ function CameraRig({
         // Framerate-independent exponential smoothing
         // Clamp delta to avoid large jumps on frame drops (e.g. during modal opening)
         const clampedDelta = Math.min(delta, 0.03);
-        // Search zoom: dreamy glide (0.75), star click: smooth fly-in (0.95), idle zoom-out: smooth drift (1.2)
+        // Search zoom: dreamy glide (0.85), star click: smooth fly-in (2.2), idle zoom-out: smooth drift (1.8)
         const lerpSpeed = activeMemoryId
-            ? (isSearchZoom ? 0.75 : 0.95)
-            : 1.2;
+            ? (isSearchZoom ? 0.85 : 2.2)
+            : 1.8;
         const t = 1.0 - Math.exp(-lerpSpeed * clampedDelta);
         
         camera.position.lerp(targetPos.current, t);
