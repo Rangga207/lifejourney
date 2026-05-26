@@ -23,13 +23,15 @@ interface CanvasSceneProps {
     activeMemoryId?: string | null;
     onSelectMemory?: (id: string | null) => void;
     timeTheme?: 'dawn' | 'sunset' | 'midnight';
+    isSearchZoom?: boolean;
 }
 
 export default function CanvasScene({ 
     memories = [], 
     activeMemoryId = null, 
     onSelectMemory = () => {},
-    timeTheme = 'midnight'
+    timeTheme = 'midnight',
+    isSearchZoom = false,
 }: CanvasSceneProps) {
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -10 }}>
@@ -41,7 +43,8 @@ export default function CanvasScene({
                 <Constellation 
                     memories={memories} 
                     activeMemoryId={activeMemoryId} 
-                    onSelectMemory={onSelectMemory} 
+                    onSelectMemory={onSelectMemory}
+                    isSearchZoom={isSearchZoom}
                 />
             </Canvas>
         </div>

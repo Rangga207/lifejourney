@@ -9,6 +9,7 @@ interface ConstellationProps {
     memories: Memory[];
     activeMemoryId: string | null;
     onSelectMemory: (id: string | null) => void;
+    isSearchZoom?: boolean;
 }
 
 function MemoryStar({
@@ -183,10 +184,12 @@ function CameraRig({
     activeMemoryId,
     memories,
     points,
+    isSearchZoom,
 }: {
     activeMemoryId: string | null;
     memories: Memory[];
     points: THREE.Vector3[];
+    isSearchZoom?: boolean;
 }) {
     const { camera } = useThree();
     
@@ -205,8 +208,13 @@ function CameraRig({
         
         if (activeMemoryId && activeIndex !== -1 && points[activeIndex]) {
             const nodePos = points[activeIndex];
-            // Gorgeous 3/4 perspective offset view of the selected node
-            targetPos.current.set(nodePos.x + 0.6, nodePos.y + 0.4, nodePos.z + 1.8);
+            if (isSearchZoom) {
+                // Gentle distant overview zoom for search — stays further away, wider angle
+                targetPos.current.set(nodePos.x * 0.5, nodePos.y * 0.5 + 0.5, nodePos.z + 4.5);
+            } else {
+                // Precise fly-to on star click — beautiful 3/4 perspective
+                targetPos.current.set(nodePos.x + 0.6, nodePos.y + 0.4, nodePos.z + 1.8);
+            }
             targetLookAt.current.copy(nodePos);
         } else {
             // Home floating camera parallax based on mouse
@@ -217,7 +225,10 @@ function CameraRig({
         }
 
         // Framerate-independent exponential smoothing
-        const lerpSpeed = activeMemoryId ? 3.0 : 1.8;
+        // Search zoom: very gentle glide (0.9), star click: smooth (2.2), idle: relaxed (1.8)
+        const lerpSpeed = activeMemoryId
+            ? (isSearchZoom ? 0.85 : 2.2)
+            : 1.8;
         const t = 1.0 - Math.exp(-lerpSpeed * delta);
         
         camera.position.lerp(targetPos.current, t);
@@ -232,6 +243,7 @@ export default function Constellation({
     memories = [],
     activeMemoryId,
     onSelectMemory,
+    isSearchZoom,
 }: ConstellationProps) {
     const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -283,6 +295,7 @@ export default function Constellation({
                 activeMemoryId={activeMemoryId}
                 memories={chronologicalMemories}
                 points={points}
+                isSearchZoom={isSearchZoom}
             />
 
             {/* Constellation Connection lines */}

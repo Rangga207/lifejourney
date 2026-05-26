@@ -29,6 +29,7 @@ export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSpaceBlurred, setIsSpaceBlurred] = useState(false);
   const [activeMemoryId, setActiveMemoryId] = useState<string | null>(null);
+  const [cameraFocusId, setCameraFocusId] = useState<string | null>(null);
   const [timeTheme, setTimeTheme] = useState<'dawn' | 'sunset' | 'midnight'>('midnight');
 
   useEffect(() => {
@@ -60,8 +61,10 @@ export default function HomePage() {
     });
     if (isOpen) {
       setActiveMemoryId(id);
+      setCameraFocusId(id);
     } else {
       setActiveMemoryId((prev) => (prev === id ? null : prev));
+      // Don't clear cameraFocusId here — camera stays near node until search clears
     }
   }, []);
 
@@ -128,19 +131,18 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
-  // Auto-zoom to matching star when searching
+  // Auto-zoom camera to matching star when searching — does NOT open modal
   useEffect(() => {
     if (searchQuery.trim() !== '') {
-      const matched = memories.find(m => 
-        !m.isGalleryOnly && 
-        (m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-         m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+      const matched = memories.find(m =>
+        !m.isGalleryOnly &&
+        (m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          m.content.toLowerCase().includes(searchQuery.toLowerCase()))
       );
-      if (matched) {
-        setActiveMemoryId(matched.id);
-      }
+      // Only update camera focus, never the modal-controlling activeMemoryId
+      setCameraFocusId(matched ? matched.id : null);
     } else {
-      setActiveMemoryId(null);
+      setCameraFocusId(null);
     }
   }, [searchQuery, memories]);
 
@@ -306,9 +308,14 @@ export default function HomePage() {
         <ErrorBoundary>
           <CanvasScene
             memories={memories}
-            activeMemoryId={activeMemoryId}
-            onSelectMemory={setActiveMemoryId}
+            activeMemoryId={cameraFocusId}
+            onSelectMemory={(id) => {
+              // Clicking a star: move camera AND open the modal
+              setCameraFocusId(id);
+              setActiveMemoryId(id);
+            }}
             timeTheme={timeTheme}
+            isSearchZoom={searchQuery.trim() !== '' && cameraFocusId !== null && activeMemoryId !== cameraFocusId}
           />
         </ErrorBoundary>
       </div>
