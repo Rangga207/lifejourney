@@ -77,7 +77,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
       setError(false);
       setIsSuccess(true);
 
-      // Show "Hiii Boociiilll" for 3.5 seconds as requested, then trigger stardust rise
+      // Show "Hiii Boociiilll" for exactly 2 seconds as requested, then trigger stardust rise & dissolve
       setTimeout(() => {
         setShowParticles(true);
         // Particles rise and background dissolves for 2.2 seconds, then fade out the overlay
@@ -85,7 +85,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
           setIsExiting(true);
           setTimeout(onLoginSuccess, 900);
         }, 2200);
-      }, 3500);
+      }, 2000);
     } else {
       setError(true);
       setPin('');
@@ -125,6 +125,26 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
             />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.015)_0%,transparent_65%)]" />
           </motion.div>
+
+          {/* 
+            Cinematic Center Starlight Flare:
+            Expands and flares from the center of the screen as the dark veil dissolves,
+            connecting directly to the cosmic/galaxy theme of the memory map.
+          */}
+          <AnimatePresence>
+            {showParticles && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: [0, 0.5, 0.7, 0], scale: [0.8, 1.4, 2] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 2.2, times: [0, 0.35, 0.7, 1], ease: 'easeOut' }}
+                className="absolute inset-0 pointer-events-none z-[240] mix-blend-screen"
+                style={{
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(186,230,253,0.15) 35%, transparent 70%)',
+                }}
+              />
+            )}
+          </AnimatePresence>
 
           {/* Main card container */}
           <div className="relative w-full max-w-sm z-10">
@@ -302,10 +322,10 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                   initial={{ opacity: 0, scale: 0.9, filter: 'blur(15px)' }}
                   animate={
                     showParticles
-                      ? { opacity: 0, scale: 1.08, filter: 'blur(10px)' }
-                      : { opacity: 1, scale: 1, filter: 'blur(0px)' }
+                      ? { opacity: 0, scale: 1.15, filter: 'blur(8px)', y: -15 }
+                      : { opacity: 1, scale: 1, filter: 'blur(0px)', y: 0 }
                   }
-                  transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                   className="flex flex-col items-center justify-center h-48"
                 >
                   <h2

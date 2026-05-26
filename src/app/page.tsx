@@ -141,9 +141,13 @@ export default function HomePage() {
       );
       setCameraFocusId(matched ? matched.id : null);
     } else {
-      setCameraFocusId(null);
+      // ONLY reset cameraFocusId to null if there is no active card modal open!
+      // This completely prevents search from overriding manual clicks.
+      if (!activeMemoryId) {
+        setCameraFocusId(null);
+      }
     }
-  }, [searchQuery, memories]);
+  }, [searchQuery, memories, activeMemoryId]);
 
   const handleLoginSuccess = () => {
     localStorage.setItem('memory_auth', 'true');
