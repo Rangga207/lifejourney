@@ -53,6 +53,7 @@ export default function HomePage() {
 
   const [activeModals, setActiveModals] = useState<Record<string, boolean>>({});
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showBlackCurtain, setShowBlackCurtain] = useState(false);
 
   const handleModalToggle = useCallback((id: string, isOpen: boolean) => {
     setActiveModals((prev) => {
@@ -131,7 +132,7 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
-  // Auto-zoom camera to matching star when searching — does NOT open modal to ensure dreamy lag-free animations
+  // Auto-zoom camera to matching star when searching — does NOT open modal (no activeMemoryId dep = no clashing)
   useEffect(() => {
     if (searchQuery.trim() !== '') {
       const matched = memories.find(m =>
@@ -141,17 +142,16 @@ export default function HomePage() {
       );
       setCameraFocusId(matched ? matched.id : null);
     } else {
-      // ONLY reset cameraFocusId to null if there is no active card modal open!
-      // This completely prevents search from overriding manual clicks.
-      if (!activeMemoryId) {
-        setCameraFocusId(null);
-      }
+      setCameraFocusId(null);
     }
-  }, [searchQuery, memories, activeMemoryId]);
+  }, [searchQuery, memories]);
 
   const handleLoginSuccess = () => {
     localStorage.setItem('memory_auth', 'true');
     setIsAuthenticated(true);
+    // Show black curtain that slowly fades out to reveal the website
+    setShowBlackCurtain(true);
+    setTimeout(() => setShowBlackCurtain(false), 80);
   };
 
   const handleAdd = async (memoryData: { title: string; content: string; imageUrl?: string; imageUrls?: string[]; isGalleryOnly?: boolean; hideFromGallery?: boolean }) => {
@@ -336,13 +336,21 @@ export default function HomePage() {
         <LoginOverlay onLoginSuccess={handleLoginSuccess} />
       )}
 
+      {/* Black reveal curtain — fades out after login to smoothly reveal the website */}
+      <AnimatePresence>
+        {showBlackCurtain && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-[190] bg-black pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
       {isAuthenticated === true && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative z-10 flex flex-col min-h-screen"
-        >
+        <div className="relative z-10 flex flex-col min-h-screen">
           {/* Header */}
           <AnimatePresence>
             {!isHideHeader && (
@@ -879,7 +887,7 @@ export default function HomePage() {
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
       )}
     </main>
   );
