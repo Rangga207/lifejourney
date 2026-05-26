@@ -225,9 +225,9 @@ function CameraRig({
         }
 
         // Framerate-independent exponential smoothing
-        // Search zoom: very gentle glide (0.9), star click: smooth (2.2), idle: relaxed (1.8)
+        // Search zoom: dreamy glide (0.75), star click: smooth fly-in (1.4), idle: relaxed (1.8)
         const lerpSpeed = activeMemoryId
-            ? (isSearchZoom ? 0.85 : 2.2)
+            ? (isSearchZoom ? 0.75 : 1.4)
             : 1.8;
         const t = 1.0 - Math.exp(-lerpSpeed * delta);
         

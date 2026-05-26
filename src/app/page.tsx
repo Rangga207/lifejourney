@@ -531,7 +531,7 @@ export default function HomePage() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Nyari apa dek?"
+                    placeholder="Nyari apa cil?"
                     className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-md"
                   />
                 </div>
