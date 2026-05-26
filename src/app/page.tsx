@@ -62,10 +62,8 @@ export default function HomePage() {
     });
     if (isOpen) {
       setActiveMemoryId(id);
-      setCameraFocusId(id);
     } else {
       setActiveMemoryId((prev) => (prev === id ? null : prev));
-      setCameraFocusId((prev) => (prev === id ? null : prev));
     }
   }, []);
 
@@ -132,9 +130,13 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
-  // Auto-zoom camera to matching star when searching — does NOT open modal to ensure dreamy lag-free animations
+  // Unified camera focus controller: strictly reactive, no race conditions, perfectly synchronizes search and modal state
   useEffect(() => {
-    if (searchQuery.trim() !== '') {
+    if (activeMemoryId) {
+      // 1. If a note modal is open, camera MUST stay focused on this open note's star (close zoom)
+      setCameraFocusId(activeMemoryId);
+    } else if (searchQuery.trim() !== '') {
+      // 2. If no modal is open but user is searching, focus on the matching keyword star (aerial zoom)
       const matched = memories.find(m =>
         !m.isGalleryOnly &&
         (m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -142,8 +144,8 @@ export default function HomePage() {
       );
       setCameraFocusId(matched ? matched.id : null);
     } else {
-      // When search is cleared, fall back to the open card's star focus, or null (overview) if none is open
-      setCameraFocusId(activeMemoryId);
+      // 3. Otherwise, return to overview float
+      setCameraFocusId(null);
     }
   }, [searchQuery, memories, activeMemoryId]);
 
@@ -681,9 +683,9 @@ export default function HomePage() {
                           onUpdate={handleUpdate}
                           isInitialLoad={initialLoad}
                           onFocusChange={setIsSpaceBlurred}
-                          onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
+                          onModalToggle={() => setActiveMemoryId(memory.id)}
                           isExpanded={activeMemoryId === memory.id}
-                          onClose={() => { setActiveMemoryId(null); setCameraFocusId(null); }}
+                          onClose={() => setActiveMemoryId(null)}
                         />
                       ))}
                     </div>
@@ -731,7 +733,7 @@ export default function HomePage() {
                                 onFocusChange={setIsSpaceBlurred}
                                 onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
                                 isExpanded={activeMemoryId === memory.id}
-                                onClose={() => { setActiveMemoryId(null); setCameraFocusId(null); }}
+                                onClose={() => { setActiveMemoryId(null); }}
                               />
                             </div>
                           </motion.div>
