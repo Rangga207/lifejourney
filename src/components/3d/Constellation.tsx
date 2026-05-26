@@ -171,7 +171,6 @@ function MemoryStar({
             {isHovered && (
                 <Html distanceFactor={8} pointerEvents="none" zIndexRange={[100, 200]}>
                     <div className="bg-black/75 border border-white/10 px-3 py-1.5 rounded-xl text-white text-[11px] whitespace-nowrap shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md flex items-center gap-2 transform -translate-x-1/2 -translate-y-[150%] select-none transition-all duration-300">
-                        <span className="text-xs shrink-0">{memory.emoji || '💌'}</span>
                         <span className="font-serif font-medium tracking-wide truncate max-w-[120px]">{memory.title}</span>
                         <span className="text-white/40 text-[9px] font-mono shrink-0">{memory.date}</span>
                     </div>

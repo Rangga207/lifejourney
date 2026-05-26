@@ -131,7 +131,7 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
-  // Auto-zoom camera to matching star when searching — does NOT open modal
+  // Auto-zoom camera to matching star and open its modal when searching
   useEffect(() => {
     if (searchQuery.trim() !== '') {
       const matched = memories.find(m =>
@@ -139,9 +139,12 @@ export default function HomePage() {
         (m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           m.content.toLowerCase().includes(searchQuery.toLowerCase()))
       );
-      // Only update camera focus, never the modal-controlling activeMemoryId
-      setCameraFocusId(matched ? matched.id : null);
+      if (matched) {
+        setActiveMemoryId(matched.id);
+        setCameraFocusId(matched.id);
+      }
     } else {
+      setActiveMemoryId(null);
       setCameraFocusId(null);
     }
   }, [searchQuery, memories]);
