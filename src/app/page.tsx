@@ -313,7 +313,7 @@ export default function HomePage() {
       >
         <ErrorBoundary>
           <CanvasScene
-            memories={memories}
+            memories={filteredMemories}
             activeMemoryId={cameraFocusId}
             onSelectMemory={(id) => {
               // Clicking a star: move camera AND open the modal
