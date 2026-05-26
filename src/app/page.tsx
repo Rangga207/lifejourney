@@ -131,7 +131,7 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
-  // Auto-zoom camera to matching star and open its modal when searching
+  // Auto-zoom camera to matching star when searching — does NOT open modal to ensure dreamy lag-free animations
   useEffect(() => {
     if (searchQuery.trim() !== '') {
       const matched = memories.find(m =>
@@ -139,12 +139,8 @@ export default function HomePage() {
         (m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           m.content.toLowerCase().includes(searchQuery.toLowerCase()))
       );
-      if (matched) {
-        setActiveMemoryId(matched.id);
-        setCameraFocusId(matched.id);
-      }
+      setCameraFocusId(matched ? matched.id : null);
     } else {
-      setActiveMemoryId(null);
       setCameraFocusId(null);
     }
   }, [searchQuery, memories]);

@@ -77,15 +77,15 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
       setError(false);
       setIsSuccess(true);
 
-      // Show "Hiii Boociiilll" for 1.5s, then trigger stardust rise
+      // Show "Hiii Boociiilll" for 3.5 seconds as requested, then trigger stardust rise
       setTimeout(() => {
         setShowParticles(true);
-        // Particles rise for 2.2s, then fade out the overlay
+        // Particles rise and background dissolves for 2.2 seconds, then fade out the overlay
         setTimeout(() => {
           setIsExiting(true);
           setTimeout(onLoginSuccess, 900);
         }, 2200);
-      }, 1500);
+      }, 3500);
     } else {
       setError(true);
       setPin('');
@@ -102,17 +102,29 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4 overflow-hidden bg-[#040407]"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 overflow-hidden"
         >
-          {/* Static subtle background starlight texture (NO animating blurred shapes = NO flickering) */}
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.015]"
-            style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
-              backgroundSize: '56px 56px',
-            }}
-          />
-          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.015)_0%,transparent_65%)]" />
+          {/* 
+            Animate-dissolve background wrapper:
+            Slowly fades from solid bg-[#040407] to transparent when showParticles is true.
+            This seamlessly reveals the active 3D galaxy spinning in the background,
+            making the transition into the website feel extremely connected and premium.
+          */}
+          <motion.div
+            className="absolute inset-0 -z-20 pointer-events-none bg-[#040407]"
+            animate={showParticles ? { opacity: 0 } : { opacity: 1 }}
+            transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* Subtle background starlight texture */}
+            <div
+              className="absolute inset-0 opacity-[0.015]"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+                backgroundSize: '56px 56px',
+              }}
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.015)_0%,transparent_65%)]" />
+          </motion.div>
 
           {/* Main card container */}
           <div className="relative w-full max-w-sm z-10">
@@ -132,7 +144,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                     style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)' }}
                   />
 
-                  {/* Header: minimalist Lock icon + Title */}
+                  {/* Header: lock icon + Title */}
                   <div className="text-center mb-8">
                     <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
