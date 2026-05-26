@@ -15,6 +15,7 @@ function MemoryStar({
     memory,
     position,
     isHovered,
+    isActive,
     onClick,
     onHover,
     onBlur,
@@ -22,6 +23,7 @@ function MemoryStar({
     memory: Memory;
     position: THREE.Vector3;
     isHovered: boolean;
+    isActive: boolean;
     onClick: () => void;
     onHover: () => void;
     onBlur: () => void;
@@ -36,36 +38,58 @@ function MemoryStar({
     const orbitRadius = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * 0.16 + 0.14), []);
     const orbitPhase = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * Math.PI * 2), []);
 
-    useFrame((state) => {
+    // Interpolation references for blending/transitions
+    const targetScale = (isHovered || isActive) ? 1.0 : 0.45;
+    const targetEmissive = (isHovered || isActive) ? 2.0 : 0.25;
+    const targetGlowOpacity = (isHovered || isActive) ? 0.22 : 0.0;
+    const targetOrbitOpacity = (isHovered || isActive) ? 0.65 : 0.0;
+
+    const currentScale = useRef(0.45);
+    const currentEmissive = useRef(0.25);
+    const currentGlowOpacity = useRef(0.0);
+    const currentOrbitOpacity = useRef(0.0);
+
+    useFrame((state, delta) => {
         const time = state.clock.getElapsedTime();
         
-        if (glowRef.current) {
-            // Pulse scale and opacity dynamically
-            const pulse = Math.sin(time * 2.5 + memory.title.charCodeAt(0)) * 0.2;
-            glowRef.current.scale.setScalar(1.8 + pulse);
-            const material = glowRef.current.material as THREE.MeshBasicMaterial;
-            if (material) {
-                material.opacity = 0.15 + pulse * 0.05;
-            }
-        }
-        
+        // Dynamic smooth transitions
+        const t = 1.0 - Math.exp(-6.5 * delta);
+        currentScale.current += (targetScale - currentScale.current) * t;
+        currentEmissive.current += (targetEmissive - currentEmissive.current) * t;
+        currentGlowOpacity.current += (targetGlowOpacity - currentGlowOpacity.current) * t;
+        currentOrbitOpacity.current += (targetOrbitOpacity - currentOrbitOpacity.current) * t;
+
         if (starRef.current) {
+            starRef.current.scale.setScalar(currentScale.current);
             starRef.current.rotation.y = time * 0.4;
             starRef.current.rotation.x = time * 0.15;
             
-            // Faint floating motion
+            const starMat = starRef.current.material as THREE.MeshStandardMaterial;
+            if (starMat) {
+                starMat.emissiveIntensity = currentEmissive.current;
+            }
+
             const floatOffset = Math.sin(time + memory.title.charCodeAt(0)) * 0.02;
             starRef.current.position.y = floatOffset;
         }
 
+        if (glowRef.current) {
+            const pulse = Math.sin(time * 2.5 + memory.title.charCodeAt(0)) * 0.2;
+            glowRef.current.scale.setScalar(currentScale.current * (1.8 + pulse));
+            const glowMat = glowRef.current.material as THREE.MeshBasicMaterial;
+            if (glowMat) {
+                glowMat.opacity = currentGlowOpacity.current;
+            }
+        }
+
         if (orbitRefs.current) {
-            // Animate orbiting particles
             const children = orbitRefs.current.children;
             for (let i = 0; i < children.length; i++) {
                 const child = children[i] as THREE.Mesh;
                 if (child) {
                     const speed = orbitSpeed[i];
-                    const rad = orbitRadius[i];
+                    // Orbit rings contract/expand based on selection scale
+                    const rad = orbitRadius[i] * currentScale.current * 1.5;
                     const phase = orbitPhase[i];
                     const angle = time * speed + phase;
                     child.position.set(
@@ -76,7 +100,7 @@ function MemoryStar({
                     
                     const childMat = child.material as THREE.MeshBasicMaterial;
                     if (childMat) {
-                        childMat.opacity = 0.25 + Math.sin(time * 4 + i) * 0.15;
+                        childMat.opacity = currentOrbitOpacity.current * (0.3 + Math.sin(time * 4 + i) * 0.2);
                     }
                 }
             }
@@ -93,7 +117,7 @@ function MemoryStar({
                 <meshBasicMaterial
                     color={starColor}
                     transparent
-                    opacity={0.16}
+                    opacity={0.0}
                     blending={THREE.AdditiveBlending}
                     depthWrite={false}
                 />
@@ -119,7 +143,7 @@ function MemoryStar({
                 <meshStandardMaterial
                     color={starColor}
                     emissive={starColor}
-                    emissiveIntensity={1.8}
+                    emissiveIntensity={0.25}
                     roughness={0.0}
                     metalness={0.9}
                 />
@@ -133,7 +157,7 @@ function MemoryStar({
                         <meshBasicMaterial
                             color={starColor}
                             transparent
-                            opacity={0.4}
+                            opacity={0.0}
                             blending={THREE.AdditiveBlending}
                             depthWrite={false}
                         />
@@ -283,6 +307,7 @@ export default function Constellation({
                         memory={memory}
                         position={pos}
                         isHovered={hoveredId === memory.id}
+                        isActive={activeMemoryId === memory.id}
                         onClick={() => onSelectMemory(memory.id)}
                         onHover={() => setHoveredId(memory.id)}
                         onBlur={() => setHoveredId(null)}

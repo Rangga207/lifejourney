@@ -128,6 +128,22 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
+  // Auto-zoom to matching star when searching
+  useEffect(() => {
+    if (searchQuery.trim() !== '') {
+      const matched = memories.find(m => 
+        !m.isGalleryOnly && 
+        (m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+         m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      if (matched) {
+        setActiveMemoryId(matched.id);
+      }
+    } else {
+      setActiveMemoryId(null);
+    }
+  }, [searchQuery, memories]);
+
   const handleLoginSuccess = () => {
     localStorage.setItem('memory_auth', 'true');
     setIsAuthenticated(true);
@@ -374,7 +390,7 @@ export default function HomePage() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -30, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-                className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-6"
+                className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-3"
               >
                 <div
                   className={`pointer-events-auto flex items-center p-1 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 transition-colors duration-500 max-w-[95vw] ${isScrolled
@@ -498,18 +514,18 @@ export default function HomePage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="relative z-10 px-4 max-w-xs mx-auto mb-10"
+                className="relative z-10 px-4 max-w-xs mx-auto mb-3"
               >
                 <div className="relative w-full group">
-                  <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors duration-300">
-                    <Search size={14} />
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/70 transition-colors duration-300">
+                    <Search size={12} />
                   </div>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Nyari apa dek?"
-                    className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-md"
+                    className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-md"
                   />
                 </div>
               </motion.section>
