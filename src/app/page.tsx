@@ -64,7 +64,7 @@ export default function HomePage() {
       setCameraFocusId(id);
     } else {
       setActiveMemoryId((prev) => (prev === id ? null : prev));
-      // Don't clear cameraFocusId here — camera stays near node until search clears
+      setCameraFocusId((prev) => (prev === id ? null : prev));
     }
   }, []);
 
@@ -670,7 +670,7 @@ export default function HomePage() {
                           onFocusChange={setIsSpaceBlurred}
                           onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
                           isExpanded={activeMemoryId === memory.id}
-                          onClose={() => setActiveMemoryId(null)}
+                          onClose={() => { setActiveMemoryId(null); setCameraFocusId(null); }}
                         />
                       ))}
                     </div>
@@ -718,7 +718,7 @@ export default function HomePage() {
                                 onFocusChange={setIsSpaceBlurred}
                                 onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
                                 isExpanded={activeMemoryId === memory.id}
-                                onClose={() => setActiveMemoryId(null)}
+                                onClose={() => { setActiveMemoryId(null); setCameraFocusId(null); }}
                               />
                             </div>
                           </motion.div>

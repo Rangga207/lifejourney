@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { verifyLogin } from '@/app/actions';
@@ -8,10 +8,114 @@ interface LoginOverlayProps {
   onLoginSuccess: () => void;
 }
 
+// Fullscreen animated star tornado / vortex of starlight
+function StarTornado() {
+  const stars = useMemo(() => {
+    return Array.from({ length: 90 }).map((_, i) => {
+      const steps = 25;
+      const x: number[] = [];
+      const y: number[] = [];
+      const scale: number[] = [];
+      const opacity: number[] = [];
+      
+      const startAngle = Math.random() * Math.PI * 2;
+      const revolutions = 3.5 + Math.random() * 2.5; // number of spiral spins
+      
+      // Funnel shape coordinates:
+      // Start near center bottom (y = 400px relative to center) with small radius
+      // End near top (y = -500px relative to center) with large radius
+      const startRadius = 5 + Math.random() * 15;
+      const endRadius = 180 + Math.random() * 250;
+      
+      const startY = 400; 
+      const endY = -500;  
+      
+      const duration = 1.8 + Math.random() * 0.8;
+      const delay = Math.random() * 1.5; 
+      const size = Math.random() * 4 + 2; 
+      
+      const colors = ['#f5d0fe', '#c084fc', '#818cf8', '#60a5fa', '#38bdf8', '#f472b6', '#ffffff'];
+      const color = colors[i % colors.length];
+
+      for (let step = 0; step <= steps; step++) {
+        const t = step / steps; // 0 to 1
+        const angle = startAngle + t * revolutions * Math.PI * 2;
+        const radius = startRadius + (endRadius - startRadius) * Math.pow(t, 1.8);
+        
+        const posX = Math.cos(angle) * radius;
+        const posY = startY + (endY - startY) * t;
+        
+        x.push(posX);
+        y.push(posY);
+        
+        // Scale and opacity fade-in/fade-out
+        if (t < 0.1) {
+          scale.push(t * 10);
+          opacity.push(t * 10);
+        } else if (t > 0.85) {
+          scale.push((1 - t) * 6.6);
+          opacity.push((1 - t) * 6.6);
+        } else {
+          scale.push(1);
+          opacity.push(0.85);
+        }
+      }
+
+      return { x, y, scale, opacity, duration, delay, size, color };
+    });
+  }, []);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-[250] flex items-center justify-center overflow-hidden">
+      {/* Central swirling vortex glow */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.5, rotate: 0 }}
+        animate={{ 
+          opacity: [0, 0.4, 0.6, 0], 
+          scale: [0.8, 1.3, 1.8, 2.2],
+          rotate: 720 
+        }}
+        transition={{ duration: 3.5, ease: "easeInOut" }}
+        className="w-[300px] h-[300px] rounded-full bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-transparent blur-[60px]"
+      />
+
+      {/* Swirling stars */}
+      {stars.map((star, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ x: 0, y: 400, scale: 0, opacity: 0 }}
+          animate={{
+            x: star.x,
+            y: star.y,
+            scale: star.scale,
+            opacity: star.opacity,
+          }}
+          transition={{
+            duration: star.duration,
+            delay: star.delay,
+            ease: "easeOut",
+            repeat: Infinity,
+            repeatDelay: 0.5
+          }}
+          className="absolute rounded-full"
+          style={{
+            width: star.size,
+            height: star.size,
+            backgroundColor: star.color,
+            boxShadow: `0 0 ${star.size * 2}px ${star.color}, 0 0 ${star.size * 4}px ${star.color}`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showTornado, setShowTornado] = useState(false);
+  const [showFlash, setShowFlash] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,11 +130,21 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
       setError(false);
       setIsSuccess(true);
       
-      // Delay transition for gorgeous welcome message
+      // Delay transition for gorgeous welcome message, then show star tornado
       setTimeout(() => {
-        setIsExiting(true);
-        setTimeout(onLoginSuccess, 1500); 
-      }, 3500);
+        setShowTornado(true);
+        
+        // Run tornado for 2.5s, then trigger full screen glow burst/flash
+        setTimeout(() => {
+          setShowFlash(true);
+          
+          // Flash peak: fade out the overlay, then call onLoginSuccess
+          setTimeout(() => {
+            setIsExiting(true);
+            setTimeout(onLoginSuccess, 1000);
+          }, 300);
+        }, 2500);
+      }, 1500);
     } else {
       setError(true);
       setPin(''); // Reset PIN on error
@@ -77,7 +191,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
             />
           </div>
 
-          <div className="relative w-full max-w-sm">
+          <div className="relative w-full max-w-sm z-10">
             <AnimatePresence mode="wait">
               {!isSuccess ? (
                 <motion.div
@@ -125,7 +239,7 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                         aria-label="Enter 6-digit passcode"
                       />
 
-                      {/* Display grid of 6 tactile secure boxes */}
+                      {/* Display grid of 6 secure boxes */}
                       {Array.from({ length: 6 }).map((_, idx) => {
                         const char = pin[idx];
                         const isFocused = pin.length === idx;
@@ -214,18 +328,41 @@ export function LoginOverlay({ onLoginSuccess }: LoginOverlayProps) {
                 <motion.div
                   key="success-message"
                   initial={{ opacity: 0, scale: 0.8, filter: 'blur(20px)' }}
-                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                  animate={showTornado ? { opacity: 0, scale: 1.1, filter: 'blur(10px)' } : { opacity: 1, scale: 1, filter: 'blur(0px)' }}
                   exit={{ opacity: 0, scale: 1.1, filter: 'blur(20px)' }}
-                  transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                   className="flex items-center justify-center h-48"
                 >
                   <h2 className="font-serif text-4xl sm:text-5xl font-light text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-widest text-center">
-                    Welcome Back ♡
+                    Hiii Boociiilll
                   </h2>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
+
+          {/* Star Tornado transition */}
+          <AnimatePresence>
+            {showTornado && (
+              <StarTornado />
+            )}
+          </AnimatePresence>
+
+          {/* Fullscreen light burst / flash at the end of the tornado */}
+          <AnimatePresence>
+            {showFlash && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 1, 0] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, times: [0, 0.25, 0.75, 1], ease: "easeInOut" }}
+                className="absolute inset-0 bg-white z-[300] pointer-events-none mix-blend-screen"
+                style={{
+                  boxShadow: '0 0 100px 50px rgba(255,255,255,1)'
+                }}
+              />
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>
