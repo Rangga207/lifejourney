@@ -433,32 +433,86 @@ export default function HomePage() {
                       setIsNavbarHovered(true);
                     }
                   }}
-                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-all duration-500 max-w-[95vw] ${
+                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border max-w-[95vw] ${
                     isCollapsed
-                      ? 'w-11 h-11 justify-center bg-black/80 border-white/20 p-0 rounded-full cursor-pointer'
+                      ? 'w-[178px] h-[40px] justify-center bg-black/80 border-white/20 px-1 py-0.5 rounded-full cursor-pointer'
                       : isSearchActive
                       ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
-                      : 'h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
+                      : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
                   }`}
                   transition={{ type: 'spring', stiffness: 350, damping: 28 }}
                 >
                   <AnimatePresence mode="wait">
                     {isCollapsed ? (
-                      /* Collapsed state: single theme-based icon */
+                      /* Collapsed state: icon-only options */
                       <motion.div
-                        key="collapsed-content"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.15 }}
-                        className="relative flex items-center justify-center text-white"
+                        key="collapsed-options"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.12 }}
+                        className="flex items-center gap-1.5 p-1 text-white"
                       >
-                        {timeTheme === 'dawn' && <Sun size={14} className="text-amber-300 animate-pulse" />}
-                        {timeTheme === 'sunset' && <Sunset size={14} className="text-rose-400" />}
-                        {timeTheme === 'midnight' && <Moon size={14} className="text-indigo-200" />}
-                        {searchQuery && (
-                          <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                        )}
+                        {/* Tab 1: Notes Icon */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTab('memories');
+                          }}
+                          title="Notes"
+                          className={`relative p-2 rounded-full transition-colors flex items-center justify-center cursor-pointer ${
+                            activeTab === 'memories' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white'
+                          }`}
+                        >
+                          <LayoutGrid size={13} />
+                        </button>
+
+                        {/* Tab 2: Gallery Icon */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTab('gallery');
+                          }}
+                          title="Updates"
+                          className={`relative p-2 rounded-full transition-colors flex items-center justify-center cursor-pointer ${
+                            activeTab === 'gallery' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white'
+                          }`}
+                        >
+                          <ImageIcon size={13} />
+                        </button>
+
+                        <div className="w-px h-3.5 bg-white/15 self-center mx-0.5 shrink-0" />
+
+                        {/* Search Icon */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsSearchActive(true);
+                          }}
+                          title="Search"
+                          className="relative p-2 text-white/50 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
+                        >
+                          <Search size={13} />
+                          {searchQuery && (
+                            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                          )}
+                        </button>
+
+                        <div className="w-px h-3.5 bg-white/15 self-center mx-0.5 shrink-0" />
+
+                        {/* Theme cycle icon */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            cycleTimeTheme();
+                          }}
+                          title="Cycle Sky Theme"
+                          className="p-2 text-white/50 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
+                        >
+                          {timeTheme === 'dawn' && <Sun size={13} className="text-amber-300 animate-pulse" />}
+                          {timeTheme === 'sunset' && <Sunset size={13} className="text-rose-400" />}
+                          {timeTheme === 'midnight' && <Moon size={13} className="text-indigo-200" />}
+                        </button>
                       </motion.div>
                     ) : isSearchActive ? (
                       /* Search state */
