@@ -421,7 +421,7 @@ export default function HomePage() {
                 initial={{ y: -30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -30, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 26 }}
                 className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-3"
               >
                 <motion.div
@@ -433,14 +433,14 @@ export default function HomePage() {
                       setIsNavbarHovered(true);
                     }
                   }}
-                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-colors duration-300 max-w-[95vw] ${
+                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-all duration-300 max-w-[95vw] ${
                     isSearchActive
                       ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
                       : isCollapsed
                       ? 'w-auto h-[40px] bg-black/85 border-white/20 px-2 py-0.5 rounded-full cursor-pointer'
                       : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
                   }`}
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 26 }}
                 >
                   <AnimatePresence mode="wait">
                     {!isSearchActive ? (
@@ -448,15 +448,19 @@ export default function HomePage() {
                       <motion.div
                         key="nav-standard-flow"
                         layout
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.08 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.15 }}
                         className="flex items-center"
                       >
                         {/* Tabs switcher (Notes / Life Updates) */}
-                        <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
-                          <button
+                        <motion.div
+                          layout
+                          className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0"
+                        >
+                          <motion.button
+                            layout
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveTab('memories');
@@ -467,7 +471,7 @@ export default function HomePage() {
                               <motion.div
                                 layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                transition={{ type: 'spring', stiffness: 200, damping: 26 }}
                               />
                             )}
                             <LayoutGrid size={13} className="relative z-10 text-white shrink-0" />
@@ -475,18 +479,19 @@ export default function HomePage() {
                               {!isCollapsed && (
                                 <motion.span
                                   initial={{ width: 0, opacity: 0 }}
-                                  animate={{ width: 'auto', opacity: 1, marginLeft: 6 }}
+                                  animate={{ width: 'auto', opacity: 1, marginLeft: 4 }}
                                   exit={{ width: 0, opacity: 0 }}
-                                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap"
+                                  transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap hidden sm:inline-block"
                                 >
                                   Notes
                                 </motion.span>
                               )}
                             </AnimatePresence>
-                          </button>
+                          </motion.button>
 
-                          <button
+                          <motion.button
+                            layout
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveTab('gallery');
@@ -497,7 +502,7 @@ export default function HomePage() {
                               <motion.div
                                 layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                transition={{ type: 'spring', stiffness: 200, damping: 26 }}
                               />
                             )}
                             <ImageIcon size={13} className="relative z-10 text-white shrink-0" />
@@ -505,17 +510,17 @@ export default function HomePage() {
                               {!isCollapsed && (
                                 <motion.span
                                   initial={{ width: 0, opacity: 0 }}
-                                  animate={{ width: 'auto', opacity: 1, marginLeft: 6 }}
+                                  animate={{ width: 'auto', opacity: 1, marginLeft: 4 }}
                                   exit={{ width: 0, opacity: 0 }}
-                                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap"
+                                  transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap hidden sm:inline-block"
                                 >
                                   Updates
                                 </motion.span>
                               )}
                             </AnimatePresence>
-                          </button>
-                        </div>
+                          </motion.button>
+                        </motion.div>
 
                         {/* Separator & Notes-only controls - only if activeTab is 'memories' AND not collapsed */}
                         <AnimatePresence initial={false}>
@@ -523,18 +528,19 @@ export default function HomePage() {
                             <motion.div
                               key="notes-controls"
                               layout
-                              initial={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
-                              animate={{ opacity: 1, width: 'auto', x: 0, marginLeft: 12 }}
-                              exit={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
-                              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                              className="flex items-center gap-2 sm:gap-2.5 overflow-hidden shrink-0"
+                              initial={{ opacity: 0, width: 0, x: -10, marginLeft: 0 }}
+                              animate={{ opacity: 1, width: 'auto', x: 0, marginLeft: 8 }}
+                              exit={{ opacity: 0, width: 0, x: -10, marginLeft: 0 }}
+                              transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                              className="flex items-center gap-1.5 sm:gap-2 overflow-hidden shrink-0"
                             >
                               {/* Separator / Divider */}
-                              <div className="w-px h-4 bg-white/15 self-center shrink-0" />
+                              <motion.div layout className="w-px h-4 bg-white/15 self-center shrink-0" />
 
                               {/* View toggle: Grid / Timeline */}
-                              <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
-                                <button
+                              <motion.div layout className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
+                                <motion.button
+                                  layout
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setNotesView('grid');
@@ -546,12 +552,13 @@ export default function HomePage() {
                                     <motion.div
                                       layoutId="active-view"
                                       className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                      transition={{ type: 'spring', stiffness: 200, damping: 26 }}
                                     />
                                   )}
                                   <LayoutGrid size={13} className="relative z-10 text-white" />
-                                </button>
-                                <button
+                                </motion.button>
+                                <motion.button
+                                  layout
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setNotesView('timeline');
@@ -563,15 +570,16 @@ export default function HomePage() {
                                     <motion.div
                                       layoutId="active-view"
                                       className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                      transition={{ type: 'spring', stiffness: 200, damping: 26 }}
                                     />
                                   )}
                                   <AlignLeft size={13} className="relative z-10 text-white" />
-                                </button>
-                              </div>
+                                </motion.button>
+                              </motion.div>
 
                               {/* Sort toggle */}
-                              <button
+                              <motion.button
+                                layout
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'));
@@ -581,14 +589,15 @@ export default function HomePage() {
                               >
                                 <ArrowUpDown size={11} className="text-white/60" />
                                 <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
-                              </button>
+                              </motion.button>
                             </motion.div>
                           )}
                         </AnimatePresence>
 
                         {/* Divider and Search Trigger Button */}
-                        <div className="w-px h-4 bg-white/15 mx-2 shrink-0" />
-                        <button
+                        <motion.div layout className="w-px h-4 bg-white/15 mx-1.5 sm:mx-2 shrink-0" />
+                        <motion.button
+                          layout
                           onClick={(e) => {
                             e.stopPropagation();
                             setIsSearchActive(true);
@@ -600,11 +609,12 @@ export default function HomePage() {
                           {searchQuery && (
                             <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                           )}
-                        </button>
+                        </motion.button>
 
                         {/* Divider and Theme Selector */}
-                        <div className="w-px h-4 bg-white/15 mx-2 shrink-0" />
-                        <button
+                        <motion.div layout className="w-px h-4 bg-white/15 mx-1.5 sm:mx-2 shrink-0" />
+                        <motion.button
+                          layout
                           onClick={(e) => {
                             e.stopPropagation();
                             cycleTimeTheme();
@@ -615,18 +625,18 @@ export default function HomePage() {
                           {timeTheme === 'dawn' && <Sun size={12} className="text-amber-300 animate-pulse" />}
                           {timeTheme === 'sunset' && <Sunset size={12} className="text-rose-400" />}
                           {timeTheme === 'midnight' && <Moon size={12} className="text-indigo-200" />}
-                        </button>
+                        </motion.button>
                       </motion.div>
                     ) : (
                       /* Search state */
                       <motion.div
                         key="search-mode-content"
                         layout
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.08 }}
-                        className="flex items-center gap-2 w-full"
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex items-center gap-2 w-full animate-in fade-in-50 duration-200"
                       >
                         <Search size={13} className="text-white/40 shrink-0 ml-1" />
                         <input
