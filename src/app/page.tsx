@@ -473,24 +473,22 @@ export default function HomePage() {
                               />
                             )}
                             <LayoutGrid size={13} className="relative z-10 text-white shrink-0" />
-                            <AnimatePresence initial={false}>
-                              {!isCollapsed && (
-                                <motion.span
-                                  layout
-                                  initial={{ opacity: 0, scale: 0.8, width: 0 }}
-                                  animate={{ opacity: 1, scale: 1, width: 'auto' }}
-                                  exit={{ opacity: 0, scale: 0.8, width: 0 }}
-                                  transition={{
-                                    type: 'tween',
-                                    ease: [0.25, 1, 0.25, 1],
-                                    duration: 0.38
-                                  }}
-                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-1 sm:ml-1.5"
-                                >
-                                  Notes
-                                </motion.span>
-                              )}
-                            </AnimatePresence>
+                            <motion.span
+                              layout
+                              animate={{
+                                width: isCollapsed ? 0 : 'auto',
+                                opacity: isCollapsed ? 0 : 1,
+                                scale: isCollapsed ? 0.8 : 1,
+                              }}
+                              transition={{
+                                type: 'tween',
+                                ease: [0.25, 1, 0.25, 1],
+                                duration: 0.38
+                              }}
+                              className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-0"
+                            >
+                              <span className="ml-1 sm:ml-1.5">Notes</span>
+                            </motion.span>
                           </motion.button>
 
                           <motion.button
@@ -509,102 +507,97 @@ export default function HomePage() {
                               />
                             )}
                             <ImageIcon size={13} className="relative z-10 text-white shrink-0" />
-                            <AnimatePresence initial={false}>
-                              {!isCollapsed && (
-                                <motion.span
-                                  layout
-                                  initial={{ opacity: 0, scale: 0.8, width: 0 }}
-                                  animate={{ opacity: 1, scale: 1, width: 'auto' }}
-                                  exit={{ opacity: 0, scale: 0.8, width: 0 }}
-                                  transition={{
-                                    type: 'tween',
-                                    ease: [0.25, 1, 0.25, 1],
-                                    duration: 0.38
-                                  }}
-                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-1 sm:ml-1.5"
-                                >
-                                  Updates
-                                </motion.span>
-                              )}
-                            </AnimatePresence>
-                          </motion.button>
-                        </motion.div>
-
-                        {/* Separator & Notes-only controls - only if activeTab is 'memories' AND not collapsed */}
-                        <AnimatePresence initial={false}>
-                          {activeTab === 'memories' && !isCollapsed && (
-                            <motion.div
-                              key="notes-controls"
+                            <motion.span
                               layout
-                              initial={{ opacity: 0, scale: 0.95, width: 0 }}
-                              animate={{ opacity: 1, scale: 1, width: 'auto' }}
-                              exit={{ opacity: 0, scale: 0.95, width: 0 }}
+                              animate={{
+                                width: isCollapsed ? 0 : 'auto',
+                                opacity: isCollapsed ? 0 : 1,
+                                scale: isCollapsed ? 0.8 : 1,
+                              }}
                               transition={{
                                 type: 'tween',
                                 ease: [0.25, 1, 0.25, 1],
                                 duration: 0.38
                               }}
-                              className="flex items-center gap-1 sm:gap-1.5 overflow-hidden shrink-0"
+                              className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-0"
                             >
-                              {/* Separator / Divider */}
-                              <motion.div layout className="w-px h-4 bg-white/15 self-center shrink-0 mx-0.5 sm:mx-1" />
+                              <span className="ml-1 sm:ml-1.5">Updates</span>
+                            </motion.span>
+                          </motion.button>
+                        </motion.div>
 
-                              {/* View toggle: Grid / Timeline */}
-                              <motion.div layout className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
-                                <motion.button
-                                  layout
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNotesView('grid');
-                                  }}
-                                  title="Grid view"
-                                  className="relative p-1 sm:p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
-                                >
-                                  {notesView === 'grid' && (
-                                    <motion.div
-                                      layoutId="active-view"
-                                      className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
-                                    />
-                                  )}
-                                  <LayoutGrid size={13} className="relative z-10 text-white" />
-                                </motion.button>
-                                <motion.button
-                                  layout
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNotesView('timeline');
-                                  }}
-                                  title="Timeline view"
-                                  className="relative p-1 sm:p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
-                                >
-                                  {notesView === 'timeline' && (
-                                    <motion.div
-                                      layoutId="active-view"
-                                      className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
-                                    />
-                                  )}
-                                  <AlignLeft size={13} className="relative z-10 text-white" />
-                                </motion.button>
-                              </motion.div>
+                        {/* Separator & Notes-only controls - only if activeTab is 'memories' AND not collapsed */}
+                        <motion.div
+                          layout
+                          animate={{
+                            width: (activeTab === 'memories' && !isCollapsed) ? 'auto' : 0,
+                            opacity: (activeTab === 'memories' && !isCollapsed) ? 1 : 0,
+                            scale: (activeTab === 'memories' && !isCollapsed) ? 1 : 0.95,
+                          }}
+                          transition={{
+                            type: 'tween',
+                            ease: [0.25, 1, 0.25, 1],
+                            duration: 0.38
+                          }}
+                          className="flex items-center gap-1 sm:gap-1.5 overflow-hidden shrink-0"
+                        >
+                          {/* Separator / Divider */}
+                          <motion.div layout className="w-px h-4 bg-white/15 self-center shrink-0 mx-0.5 sm:mx-1" />
 
-                              {/* Sort toggle */}
-                              <motion.button
-                                layout
-                                onClick={(e) => {
+                          {/* View toggle: Grid / Timeline */}
+                          <motion.div layout className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
+                            <motion.button
+                              layout
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNotesView('grid');
+                              }}
+                              title="Grid view"
+                              className="relative p-1 sm:p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                            >
+                              {notesView === 'grid' && (
+                                <motion.div
+                                  layoutId="active-view"
+                                  className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                                  transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
+                                />
+                              )}
+                              <LayoutGrid size={13} className="relative z-10 text-white" />
+                            </motion.button>
+                            <motion.button
+                              layout
+                              onClick={(e) => {
                                   e.stopPropagation();
-                                  setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'));
-                                }}
-                                title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
-                                className="relative flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0"
-                              >
-                                <ArrowUpDown size={11} className="text-white/60" />
-                                <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
-                              </motion.button>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                                  setNotesView('timeline');
+                              }}
+                              title="Timeline view"
+                              className="relative p-1 sm:p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                            >
+                              {notesView === 'timeline' && (
+                                <motion.div
+                                  layoutId="active-view"
+                                  className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                                  transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
+                                />
+                              )}
+                              <AlignLeft size={13} className="relative z-10 text-white" />
+                            </motion.button>
+                          </motion.div>
+
+                          {/* Sort toggle */}
+                          <motion.button
+                            layout
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'));
+                            }}
+                            title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
+                            className="relative flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0"
+                          >
+                            <ArrowUpDown size={11} className="text-white/60" />
+                            <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                          </motion.button>
+                        </motion.div>
 
                         {/* Divider and Search Trigger Button */}
                         <motion.div layout className="w-px h-4 bg-white/15 mx-1 sm:mx-2 shrink-0" />
