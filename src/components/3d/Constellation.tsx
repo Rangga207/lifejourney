@@ -39,6 +39,10 @@ function MemoryStar({
     const orbitRadius = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * 0.16 + 0.14), []);
     const orbitPhase = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * Math.PI * 2), []);
 
+    // Blending colors: neutral sky-blue/white (matching ParticleField space dust) and custom vibrant colors
+    const vibrantColor = useMemo(() => new THREE.Color(memory.color || '#c084fc'), [memory.color]);
+    const neutralColor = useMemo(() => new THREE.Color('#bae6fd'), []);
+
     // Interpolation references for blending/transitions
     const targetScale = (isHovered || isActive) ? 1.0 : 0.45;
     const targetEmissive = (isHovered || isActive) ? 2.0 : 0.25;
@@ -61,6 +65,9 @@ function MemoryStar({
         currentGlowOpacity.current += (targetGlowOpacity - currentGlowOpacity.current) * t;
         currentOrbitOpacity.current += (targetOrbitOpacity - currentOrbitOpacity.current) * t;
 
+        // Normalized color interpolation factor (0 = small neutral, 1 = large vibrant)
+        const colorT = Math.max(0, Math.min(1, (currentScale.current - 0.45) / (1.0 - 0.45)));
+
         if (starRef.current) {
             starRef.current.scale.setScalar(currentScale.current);
             starRef.current.rotation.y = time * 0.4;
@@ -69,6 +76,9 @@ function MemoryStar({
             const starMat = starRef.current.material as THREE.MeshStandardMaterial;
             if (starMat) {
                 starMat.emissiveIntensity = currentEmissive.current;
+                // Transition color dynamically
+                starMat.color.copy(neutralColor).lerp(vibrantColor, colorT);
+                starMat.emissive.copy(neutralColor).lerp(vibrantColor, colorT);
             }
 
             const floatOffset = Math.sin(time + memory.title.charCodeAt(0)) * 0.02;
@@ -81,6 +91,7 @@ function MemoryStar({
             const glowMat = glowRef.current.material as THREE.MeshBasicMaterial;
             if (glowMat) {
                 glowMat.opacity = currentGlowOpacity.current;
+                glowMat.color.copy(neutralColor).lerp(vibrantColor, colorT);
             }
         }
 
@@ -103,6 +114,7 @@ function MemoryStar({
                     const childMat = child.material as THREE.MeshBasicMaterial;
                     if (childMat) {
                         childMat.opacity = currentOrbitOpacity.current * (0.3 + Math.sin(time * 4 + i) * 0.2);
+                        childMat.color.copy(neutralColor).lerp(vibrantColor, colorT);
                     }
                 }
             }
