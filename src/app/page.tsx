@@ -434,131 +434,19 @@ export default function HomePage() {
                     }
                   }}
                   className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-colors duration-300 max-w-[95vw] ${
-                    isCollapsed
-                      ? 'w-[178px] h-[40px] justify-center bg-black/80 border-white/20 px-1 py-0.5 rounded-full cursor-pointer'
-                      : isSearchActive
+                    isSearchActive
                       ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
+                      : isCollapsed
+                      ? 'w-auto h-[40px] bg-black/85 border-white/20 px-2 py-0.5 rounded-full cursor-pointer'
                       : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
                   }`}
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 >
                   <AnimatePresence mode="wait">
-                    {isCollapsed ? (
-                      /* Collapsed state: icon-only options */
+                    {!isSearchActive ? (
+                      /* Standard mode (expanded / collapsed) */
                       <motion.div
-                        key="collapsed-options"
-                        layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ duration: 0.08 }}
-                        className="flex items-center gap-1.5 p-1 text-white"
-                      >
-                        {/* Tab 1: Notes Icon */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveTab('memories');
-                          }}
-                          title="Notes"
-                          className={`relative p-2 rounded-full transition-colors flex items-center justify-center cursor-pointer ${
-                            activeTab === 'memories' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white'
-                          }`}
-                        >
-                          <LayoutGrid size={13} />
-                        </button>
-
-                        {/* Tab 2: Gallery Icon */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveTab('gallery');
-                          }}
-                          title="Updates"
-                          className={`relative p-2 rounded-full transition-colors flex items-center justify-center cursor-pointer ${
-                            activeTab === 'gallery' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white'
-                          }`}
-                        >
-                          <ImageIcon size={13} />
-                        </button>
-
-                        <div className="w-px h-3.5 bg-white/15 self-center mx-0.5 shrink-0" />
-
-                        {/* Search Icon */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsSearchActive(true);
-                          }}
-                          title="Search"
-                          className="relative p-2 text-white/50 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
-                        >
-                          <Search size={13} />
-                          {searchQuery && (
-                            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                          )}
-                        </button>
-
-                        <div className="w-px h-3.5 bg-white/15 self-center mx-0.5 shrink-0" />
-
-                        {/* Theme cycle icon */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            cycleTimeTheme();
-                          }}
-                          title="Cycle Sky Theme"
-                          className="p-2 text-white/50 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
-                        >
-                          {timeTheme === 'dawn' && <Sun size={13} className="text-amber-300 animate-pulse" />}
-                          {timeTheme === 'sunset' && <Sunset size={13} className="text-rose-400" />}
-                          {timeTheme === 'midnight' && <Moon size={13} className="text-indigo-200" />}
-                        </button>
-                      </motion.div>
-                    ) : isSearchActive ? (
-                      /* Search state */
-                      <motion.div
-                        key="search-mode-content"
-                        layout
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.08 }}
-                        className="flex items-center gap-2 w-full"
-                      >
-                        <Search size={13} className="text-white/40 shrink-0 ml-1" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Nyari apa cil?"
-                          autoFocus
-                          className="w-full bg-transparent border-none text-xs text-white placeholder-white/30 focus:outline-none font-light py-1"
-                        />
-                        {searchQuery && (
-                          <button
-                            onClick={() => setSearchQuery('')}
-                            className="p-1 text-white/40 hover:text-white/80 transition-colors cursor-pointer shrink-0"
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                        <div className="w-px h-4 bg-white/15 shrink-0 mx-1" />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsSearchActive(false);
-                            setSearchQuery('');
-                          }}
-                          className="text-[11px] font-medium text-white/50 hover:text-white transition-colors cursor-pointer shrink-0 mr-1"
-                        >
-                          Batal
-                        </button>
-                      </motion.div>
-                    ) : (
-                      /* Standard Expanded state */
-                      <motion.div
-                        key="expanded-content"
+                        key="nav-standard-flow"
                         layout
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -567,13 +455,13 @@ export default function HomePage() {
                         className="flex items-center"
                       >
                         {/* Tabs switcher (Notes / Life Updates) */}
-                        <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5">
+                        <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveTab('memories');
                             }}
-                            className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+                            className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
                           >
                             {activeTab === 'memories' && (
                               <motion.div
@@ -582,15 +470,28 @@ export default function HomePage() {
                                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                               />
                             )}
-                            <LayoutGrid size={13} className="relative z-10 text-white" />
-                            <span className="relative z-10 text-white">Notes</span>
+                            <LayoutGrid size={13} className="relative z-10 text-white shrink-0" />
+                            <AnimatePresence initial={false}>
+                              {!isCollapsed && (
+                                <motion.span
+                                  initial={{ width: 0, opacity: 0 }}
+                                  animate={{ width: 'auto', opacity: 1, marginLeft: 6 }}
+                                  exit={{ width: 0, opacity: 0 }}
+                                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap"
+                                >
+                                  Notes
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
                           </button>
+
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveTab('gallery');
                             }}
-                            className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+                            className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
                           >
                             {activeTab === 'gallery' && (
                               <motion.div
@@ -599,14 +500,26 @@ export default function HomePage() {
                                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                               />
                             )}
-                            <ImageIcon size={13} className="relative z-10 text-white" />
-                            <span className="relative z-10 text-white">Updates</span>
+                            <ImageIcon size={13} className="relative z-10 text-white shrink-0" />
+                            <AnimatePresence initial={false}>
+                              {!isCollapsed && (
+                                <motion.span
+                                  initial={{ width: 0, opacity: 0 }}
+                                  animate={{ width: 'auto', opacity: 1, marginLeft: 6 }}
+                                  exit={{ width: 0, opacity: 0 }}
+                                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap"
+                                >
+                                  Updates
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
                           </button>
                         </div>
 
-                        {/* Separator & Notes-only controls - only if activeTab is 'memories' */}
+                        {/* Separator & Notes-only controls - only if activeTab is 'memories' AND not collapsed */}
                         <AnimatePresence initial={false}>
-                          {activeTab === 'memories' && (
+                          {activeTab === 'memories' && !isCollapsed && (
                             <motion.div
                               key="notes-controls"
                               layout
@@ -614,7 +527,7 @@ export default function HomePage() {
                               animate={{ opacity: 1, width: 'auto', x: 0, marginLeft: 12 }}
                               exit={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                              className="flex items-center gap-2 sm:gap-2.5 overflow-hidden"
+                              className="flex items-center gap-2 sm:gap-2.5 overflow-hidden shrink-0"
                             >
                               {/* Separator / Divider */}
                               <div className="w-px h-4 bg-white/15 self-center shrink-0" />
@@ -685,7 +598,7 @@ export default function HomePage() {
                         >
                           <Search size={12} />
                           {searchQuery && (
-                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                           )}
                         </button>
 
@@ -702,6 +615,46 @@ export default function HomePage() {
                           {timeTheme === 'dawn' && <Sun size={12} className="text-amber-300 animate-pulse" />}
                           {timeTheme === 'sunset' && <Sunset size={12} className="text-rose-400" />}
                           {timeTheme === 'midnight' && <Moon size={12} className="text-indigo-200" />}
+                        </button>
+                      </motion.div>
+                    ) : (
+                      /* Search state */
+                      <motion.div
+                        key="search-mode-content"
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.08 }}
+                        className="flex items-center gap-2 w-full"
+                      >
+                        <Search size={13} className="text-white/40 shrink-0 ml-1" />
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Nyari apa cil?"
+                          autoFocus
+                          className="w-full bg-transparent border-none text-xs text-white placeholder-white/30 focus:outline-none font-light py-1"
+                        />
+                        {searchQuery && (
+                          <button
+                            onClick={() => setSearchQuery('')}
+                            className="p-1 text-white/40 hover:text-white/80 transition-colors cursor-pointer shrink-0"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                        <div className="w-px h-4 bg-white/15 shrink-0 mx-1" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsSearchActive(false);
+                            setSearchQuery('');
+                          }}
+                          className="text-[11px] font-medium text-white/50 hover:text-white transition-colors cursor-pointer shrink-0 mr-1"
+                        >
+                          Batal
                         </button>
                       </motion.div>
                     )}
