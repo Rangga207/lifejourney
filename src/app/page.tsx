@@ -433,14 +433,14 @@ export default function HomePage() {
                       setIsNavbarHovered(true);
                     }
                   }}
-                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-all duration-300 max-w-[95vw] ${
+                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-colors duration-300 max-w-[95vw] ${
                     isSearchActive
                       ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
                       : isCollapsed
                       ? 'w-auto h-[40px] bg-black/85 border-white/20 px-2 py-0.5 rounded-full cursor-pointer'
                       : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
                   }`}
-                  transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                  transition={{ type: 'spring', stiffness: 160, damping: 24 }}
                 >
                   <AnimatePresence mode="wait">
                     {!isSearchActive ? (
@@ -471,17 +471,17 @@ export default function HomePage() {
                               <motion.div
                                 layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                                transition={{ type: 'spring', stiffness: 160, damping: 24 }}
                               />
                             )}
                             <LayoutGrid size={13} className="relative z-10 text-white shrink-0" />
                             <AnimatePresence initial={false}>
-                              {!isCollapsed && (
+                              {!isCollapsed && !isMobile && (
                                 <motion.span
                                   initial={{ width: 0, opacity: 0 }}
                                   animate={{ width: 'auto', opacity: 1, marginLeft: 4 }}
                                   exit={{ width: 0, opacity: 0 }}
-                                  transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                                  transition={{ type: 'spring', stiffness: 160, damping: 24 }}
                                   className="relative z-10 text-white overflow-hidden whitespace-nowrap hidden sm:inline-block"
                                 >
                                   Notes
@@ -502,17 +502,17 @@ export default function HomePage() {
                               <motion.div
                                 layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                                transition={{ type: 'spring', stiffness: 160, damping: 24 }}
                               />
                             )}
                             <ImageIcon size={13} className="relative z-10 text-white shrink-0" />
                             <AnimatePresence initial={false}>
-                              {!isCollapsed && (
+                              {!isCollapsed && !isMobile && (
                                 <motion.span
                                   initial={{ width: 0, opacity: 0 }}
                                   animate={{ width: 'auto', opacity: 1, marginLeft: 4 }}
                                   exit={{ width: 0, opacity: 0 }}
-                                  transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                                  transition={{ type: 'spring', stiffness: 160, damping: 24 }}
                                   className="relative z-10 text-white overflow-hidden whitespace-nowrap hidden sm:inline-block"
                                 >
                                   Updates
@@ -531,8 +531,8 @@ export default function HomePage() {
                               initial={{ opacity: 0, width: 0, x: -10, marginLeft: 0 }}
                               animate={{ opacity: 1, width: 'auto', x: 0, marginLeft: 8 }}
                               exit={{ opacity: 0, width: 0, x: -10, marginLeft: 0 }}
-                              transition={{ type: 'spring', stiffness: 200, damping: 26 }}
-                              className="flex items-center gap-1.5 sm:gap-2 overflow-hidden shrink-0"
+                              transition={{ type: 'spring', stiffness: 160, damping: 24 }}
+                              className="hidden sm:flex items-center gap-1.5 sm:gap-2 overflow-hidden shrink-0"
                             >
                               {/* Separator / Divider */}
                               <motion.div layout className="w-px h-4 bg-white/15 self-center shrink-0" />
@@ -552,7 +552,7 @@ export default function HomePage() {
                                     <motion.div
                                       layoutId="active-view"
                                       className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                                      transition={{ type: 'spring', stiffness: 160, damping: 24 }}
                                     />
                                   )}
                                   <LayoutGrid size={13} className="relative z-10 text-white" />
@@ -570,7 +570,7 @@ export default function HomePage() {
                                     <motion.div
                                       layoutId="active-view"
                                       className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+                                      transition={{ type: 'spring', stiffness: 160, damping: 24 }}
                                     />
                                   )}
                                   <AlignLeft size={13} className="relative z-10 text-white" />
@@ -585,7 +585,7 @@ export default function HomePage() {
                                   setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'));
                                 }}
                                 title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
-                                className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+                                className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0"
                               >
                                 <ArrowUpDown size={11} className="text-white/60" />
                                 <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
@@ -603,7 +603,7 @@ export default function HomePage() {
                             setIsSearchActive(true);
                           }}
                           title="Cari memori..."
-                          className="relative flex items-center justify-center p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+                          className="relative flex items-center justify-center p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0"
                         >
                           <Search size={12} />
                           {searchQuery && (
@@ -620,7 +620,7 @@ export default function HomePage() {
                             cycleTimeTheme();
                           }}
                           title="Change Sky Atmosphere"
-                          className="relative flex items-center justify-center p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0 mr-1 ml-0.5"
+                          className="relative flex items-center justify-center p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0 mr-1 ml-0.5"
                         >
                           {timeTheme === 'dawn' && <Sun size={12} className="text-amber-300 animate-pulse" />}
                           {timeTheme === 'sunset' && <Sunset size={12} className="text-rose-400" />}
@@ -685,6 +685,40 @@ export default function HomePage() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
+                  {/* Mobile Controls Bar (Visible only on mobile screens) */}
+                  <div className="flex sm:hidden items-center justify-between gap-4 mb-5 px-3 py-2 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
+                    {/* View Toggle */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-white/40 text-[10px] uppercase tracking-[0.15em] font-light">View</span>
+                      <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5">
+                        <button
+                          onClick={() => setNotesView('grid')}
+                          className={`relative p-1.5 rounded-full transition-all duration-200 flex items-center justify-center ${
+                            notesView === 'grid' ? 'bg-white/10 text-white shadow-[0_2px_8px_rgba(255,255,255,0.05)]' : 'text-white/40 hover:text-white/70'
+                          }`}
+                        >
+                          <LayoutGrid size={12} />
+                        </button>
+                        <button
+                          onClick={() => setNotesView('timeline')}
+                          className={`relative p-1.5 rounded-full transition-all duration-200 flex items-center justify-center ${
+                            notesView === 'timeline' ? 'bg-white/10 text-white shadow-[0_2px_8px_rgba(255,255,255,0.05)]' : 'text-white/40 hover:text-white/70'
+                          }`}
+                        >
+                          <AlignLeft size={12} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Sort Toggle */}
+                    <button
+                      onClick={() => setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'))}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/5 rounded-full text-[11px] font-medium text-white/70 active:scale-95 transition-all hover:bg-white/10 hover:border-white/10"
+                    >
+                      <ArrowUpDown size={11} className="text-white/50" />
+                      <span>{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                    </button>
+                  </div>
                   {filteredMemories.length === 0 ? (
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
