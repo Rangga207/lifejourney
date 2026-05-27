@@ -440,7 +440,7 @@ export default function HomePage() {
                       ? 'w-auto h-[46px] bg-black/85 border-white/20 p-1 rounded-full cursor-pointer'
                       : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
                   }`}
-                  transition={{ type: 'spring', stiffness: 160, damping: 24 }}
+                  transition={{ type: 'spring', stiffness: 140, damping: 24 }}
                 >
                   <AnimatePresence mode="wait">
                     {!isSearchActive ? (
@@ -465,13 +465,13 @@ export default function HomePage() {
                               e.stopPropagation();
                               setActiveTab('memories');
                             }}
-                            className="relative flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+                            className="relative flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
                           >
                             {activeTab === 'memories' && (
                               <motion.div
                                 layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'spring', stiffness: 160, damping: 24 }}
+                                transition={{ type: 'spring', stiffness: 140, damping: 24 }}
                               />
                             )}
                             <LayoutGrid size={13} className="relative z-10 text-white shrink-0" />
@@ -479,11 +479,16 @@ export default function HomePage() {
                               {!isCollapsed && (
                                 <motion.span
                                   layout
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.8 }}
-                                  transition={{ type: 'spring', stiffness: 160, damping: 24 }}
-                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap hidden sm:inline-block"
+                                  initial={{ opacity: 0, scale: 0.8, width: 0 }}
+                                  animate={{ opacity: 1, scale: 1, width: 'auto' }}
+                                  exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                                  transition={{
+                                    width: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.35 },
+                                    opacity: { duration: 0.15 },
+                                    scale: { type: 'spring', stiffness: 140, damping: 24 },
+                                    layout: { type: 'spring', stiffness: 140, damping: 24 }
+                                  }}
+                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-1 sm:ml-1.5"
                                 >
                                   Notes
                                 </motion.span>
@@ -497,13 +502,13 @@ export default function HomePage() {
                               e.stopPropagation();
                               setActiveTab('gallery');
                             }}
-                            className="relative flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+                            className="relative flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
                           >
                             {activeTab === 'gallery' && (
                               <motion.div
                                 layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'spring', stiffness: 160, damping: 24 }}
+                                transition={{ type: 'spring', stiffness: 140, damping: 24 }}
                               />
                             )}
                             <ImageIcon size={13} className="relative z-10 text-white shrink-0" />
@@ -511,11 +516,16 @@ export default function HomePage() {
                               {!isCollapsed && (
                                 <motion.span
                                   layout
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.8 }}
-                                  transition={{ type: 'spring', stiffness: 160, damping: 24 }}
-                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap hidden sm:inline-block"
+                                  initial={{ opacity: 0, scale: 0.8, width: 0 }}
+                                  animate={{ opacity: 1, scale: 1, width: 'auto' }}
+                                  exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                                  transition={{
+                                    width: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.35 },
+                                    opacity: { duration: 0.15 },
+                                    scale: { type: 'spring', stiffness: 140, damping: 24 },
+                                    layout: { type: 'spring', stiffness: 140, damping: 24 }
+                                  }}
+                                  className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-1 sm:ml-1.5"
                                 >
                                   Updates
                                 </motion.span>
@@ -530,10 +540,15 @@ export default function HomePage() {
                             <motion.div
                               key="notes-controls"
                               layout
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.95 }}
-                              transition={{ type: 'spring', stiffness: 160, damping: 24 }}
+                              initial={{ opacity: 0, scale: 0.95, width: 0 }}
+                              animate={{ opacity: 1, scale: 1, width: 'auto' }}
+                              exit={{ opacity: 0, scale: 0.95, width: 0 }}
+                              transition={{
+                                width: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.35 },
+                                opacity: { duration: 0.15 },
+                                scale: { type: 'spring', stiffness: 140, damping: 24 },
+                                layout: { type: 'spring', stiffness: 140, damping: 24 }
+                              }}
                               className="flex items-center gap-1 sm:gap-1.5 overflow-hidden shrink-0"
                             >
                               {/* Separator / Divider */}
@@ -554,7 +569,7 @@ export default function HomePage() {
                                     <motion.div
                                       layoutId="active-view"
                                       className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'spring', stiffness: 160, damping: 24 }}
+                                      transition={{ type: 'spring', stiffness: 140, damping: 24 }}
                                     />
                                   )}
                                   <LayoutGrid size={13} className="relative z-10 text-white" />
@@ -572,7 +587,7 @@ export default function HomePage() {
                                     <motion.div
                                       layoutId="active-view"
                                       className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'spring', stiffness: 160, damping: 24 }}
+                                      transition={{ type: 'spring', stiffness: 140, damping: 24 }}
                                     />
                                   )}
                                   <AlignLeft size={13} className="relative z-10 text-white" />
