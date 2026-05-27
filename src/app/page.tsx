@@ -433,24 +433,25 @@ export default function HomePage() {
                       setIsNavbarHovered(true);
                     }
                   }}
-                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border max-w-[95vw] ${
+                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-colors duration-300 max-w-[95vw] ${
                     isCollapsed
                       ? 'w-[178px] h-[40px] justify-center bg-black/80 border-white/20 px-1 py-0.5 rounded-full cursor-pointer'
                       : isSearchActive
                       ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
                       : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
                   }`}
-                  transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 >
                   <AnimatePresence mode="wait">
                     {isCollapsed ? (
                       /* Collapsed state: icon-only options */
                       <motion.div
                         key="collapsed-options"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.12 }}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.08 }}
                         className="flex items-center gap-1.5 p-1 text-white"
                       >
                         {/* Tab 1: Notes Icon */}
@@ -518,10 +519,11 @@ export default function HomePage() {
                       /* Search state */
                       <motion.div
                         key="search-mode-content"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.08 }}
                         className="flex items-center gap-2 w-full"
                       >
                         <Search size={13} className="text-white/40 shrink-0 ml-1" />
@@ -557,10 +559,11 @@ export default function HomePage() {
                       /* Standard Expanded state */
                       <motion.div
                         key="expanded-content"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.08 }}
                         className="flex items-center"
                       >
                         {/* Tabs switcher (Notes / Life Updates) */}
