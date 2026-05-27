@@ -31,6 +31,15 @@ export default function HomePage() {
   const [activeMemoryId, setActiveMemoryId] = useState<string | null>(null);
   const [cameraFocusId, setCameraFocusId] = useState<string | null>(null);
   const [timeTheme, setTimeTheme] = useState<'dawn' | 'sunset' | 'midnight'>('midnight');
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [isNavbarHovered, setIsNavbarHovered] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    }
+  }, []);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -72,6 +81,7 @@ export default function HomePage() {
   }, [activeModals]);
 
   const isHideHeader = isAnyCardModalOpen || !!fullGalleryImage || isAddModalOpen;
+  const isCollapsed = isScrolled && !isNavbarHovered && !isSearchActive;
 
   const filteredMemories = useMemo(() => {
     const filtered = memories.filter(m =>
@@ -114,6 +124,7 @@ export default function HomePage() {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
+      setIsNavbarHovered(false);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -305,9 +316,9 @@ export default function HomePage() {
 
       {/* 3D Background with Zorin-esque spatial blur (DoF) and subtle scale interpolation */}
       <div
-        className="fixed top-0 left-0 w-screen h-screen -z-10 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        className="canvas-wrapper fixed top-0 left-0 w-screen h-screen -z-10 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
         style={{
-          filter: isSpaceBlurred ? 'blur(6px) saturate(85%)' : 'blur(0px) saturate(100%)',
+          filter: isSpaceBlurred && !isMobile ? 'blur(6px) saturate(85%)' : 'blur(0px) saturate(100%)',
           transform: isSpaceBlurred ? 'scale(1.025)' : 'scale(1)',
         }}
       >
@@ -403,7 +414,7 @@ export default function HomePage() {
             )}
           </AnimatePresence>
 
-          {/* Floating Apple-style Header */}
+          {/* Floating Apple-style Header (Dynamic Island) */}
           <AnimatePresence>
             {!isHideHeader && (
               <motion.div
@@ -413,144 +424,233 @@ export default function HomePage() {
                 transition={{ type: 'spring', stiffness: 260, damping: 26 }}
                 className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-3"
               >
-                <div
-                  className={`pointer-events-auto flex items-center p-1 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 transition-colors duration-500 max-w-[95vw] ${isScrolled
-                    ? 'bg-black/60 border-white/10'
-                    : 'bg-white/5 border-white/5'
-                    }`}
+                <motion.div
+                  layout
+                  onMouseEnter={() => setIsNavbarHovered(true)}
+                  onMouseLeave={() => setIsNavbarHovered(false)}
+                  onClick={() => {
+                    if (isCollapsed && !isNavbarHovered) {
+                      setIsNavbarHovered(true);
+                    }
+                  }}
+                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-all duration-500 max-w-[95vw] ${
+                    isCollapsed
+                      ? 'w-11 h-11 justify-center bg-black/80 border-white/20 p-0 rounded-full cursor-pointer'
+                      : isSearchActive
+                      ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
+                      : 'h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
+                  }`}
+                  transition={{ type: 'spring', stiffness: 350, damping: 28 }}
                 >
-                  {/* Tabs switcher (Notes / Life Updates) */}
-                  <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5">
-                    <button
-                      onClick={() => setActiveTab('memories')}
-                      className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
-                    >
-                      {activeTab === 'memories' && (
-                        <motion.div
-                          layoutId="active-tab"
-                          className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                        />
-                      )}
-                      <LayoutGrid size={13} className="relative z-10 text-white" />
-                      <span className="relative z-10 text-white">Notes</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('gallery')}
-                      className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
-                    >
-                      {activeTab === 'gallery' && (
-                        <motion.div
-                          layoutId="active-tab"
-                          className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                        />
-                      )}
-                      <ImageIcon size={13} className="relative z-10 text-white" />
-                      <span className="relative z-10 text-white">Updates</span>
-                    </button>
-                  </div>
-
-                  {/* Separator & Notes-only controls - only if activeTab is 'memories' */}
-                  <AnimatePresence initial={false}>
-                    {activeTab === 'memories' && (
+                  <AnimatePresence mode="wait">
+                    {isCollapsed ? (
+                      /* Collapsed state: single theme-based icon */
                       <motion.div
-                        key="notes-controls"
-                        layout
-                        initial={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
-                        animate={{ opacity: 1, width: 'auto', x: 0, marginLeft: 12 }}
-                        exit={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="flex items-center gap-2 sm:gap-2.5 overflow-hidden"
+                        key="collapsed-content"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.15 }}
+                        className="relative flex items-center justify-center text-white"
                       >
-                        {/* Separator / Divider */}
-                        <div className="w-px h-4 bg-white/15 self-center shrink-0" />
-
-                        {/* View toggle: Grid / Timeline */}
-                        <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
+                        {timeTheme === 'dawn' && <Sun size={14} className="text-amber-300 animate-pulse" />}
+                        {timeTheme === 'sunset' && <Sunset size={14} className="text-rose-400" />}
+                        {timeTheme === 'midnight' && <Moon size={14} className="text-indigo-200" />}
+                        {searchQuery && (
+                          <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                        )}
+                      </motion.div>
+                    ) : isSearchActive ? (
+                      /* Search state */
+                      <motion.div
+                        key="search-mode-content"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex items-center gap-2 w-full"
+                      >
+                        <Search size={13} className="text-white/40 shrink-0 ml-1" />
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Nyari apa cil?"
+                          autoFocus
+                          className="w-full bg-transparent border-none text-xs text-white placeholder-white/30 focus:outline-none font-light py-1"
+                        />
+                        {searchQuery && (
                           <button
-                            onClick={() => setNotesView('grid')}
-                            title="Grid view"
-                            className="relative p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                            onClick={() => setSearchQuery('')}
+                            className="p-1 text-white/40 hover:text-white/80 transition-colors cursor-pointer shrink-0"
                           >
-                            {notesView === 'grid' && (
+                            <X size={12} />
+                          </button>
+                        )}
+                        <div className="w-px h-4 bg-white/15 shrink-0 mx-1" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsSearchActive(false);
+                            setSearchQuery('');
+                          }}
+                          className="text-[11px] font-medium text-white/50 hover:text-white transition-colors cursor-pointer shrink-0 mr-1"
+                        >
+                          Batal
+                        </button>
+                      </motion.div>
+                    ) : (
+                      /* Standard Expanded state */
+                      <motion.div
+                        key="expanded-content"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex items-center"
+                      >
+                        {/* Tabs switcher (Notes / Life Updates) */}
+                        <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveTab('memories');
+                            }}
+                            className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+                          >
+                            {activeTab === 'memories' && (
                               <motion.div
-                                layoutId="active-view"
+                                layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
                                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                               />
                             )}
                             <LayoutGrid size={13} className="relative z-10 text-white" />
+                            <span className="relative z-10 text-white">Notes</span>
                           </button>
                           <button
-                            onClick={() => setNotesView('timeline')}
-                            title="Timeline view"
-                            className="relative p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveTab('gallery');
+                            }}
+                            className="relative flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
                           >
-                            {notesView === 'timeline' && (
+                            {activeTab === 'gallery' && (
                               <motion.div
-                                layoutId="active-view"
+                                layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
                                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                               />
                             )}
-                            <AlignLeft size={13} className="relative z-10 text-white" />
+                            <ImageIcon size={13} className="relative z-10 text-white" />
+                            <span className="relative z-10 text-white">Updates</span>
                           </button>
                         </div>
 
-                        {/* Sort toggle */}
+                        {/* Separator & Notes-only controls - only if activeTab is 'memories' */}
+                        <AnimatePresence initial={false}>
+                          {activeTab === 'memories' && (
+                            <motion.div
+                              key="notes-controls"
+                              layout
+                              initial={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
+                              animate={{ opacity: 1, width: 'auto', x: 0, marginLeft: 12 }}
+                              exit={{ opacity: 0, width: 0, x: -15, marginLeft: 0 }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                              className="flex items-center gap-2 sm:gap-2.5 overflow-hidden"
+                            >
+                              {/* Separator / Divider */}
+                              <div className="w-px h-4 bg-white/15 self-center shrink-0" />
+
+                              {/* View toggle: Grid / Timeline */}
+                              <div className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setNotesView('grid');
+                                  }}
+                                  title="Grid view"
+                                  className="relative p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                                >
+                                  {notesView === 'grid' && (
+                                    <motion.div
+                                      layoutId="active-view"
+                                      className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
+                                  )}
+                                  <LayoutGrid size={13} className="relative z-10 text-white" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setNotesView('timeline');
+                                  }}
+                                  title="Timeline view"
+                                  className="relative p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                                >
+                                  {notesView === 'timeline' && (
+                                    <motion.div
+                                      layoutId="active-view"
+                                      className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
+                                  )}
+                                  <AlignLeft size={13} className="relative z-10 text-white" />
+                                </button>
+                              </div>
+
+                              {/* Sort toggle */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'));
+                                }}
+                                title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
+                                className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+                              >
+                                <ArrowUpDown size={11} className="text-white/60" />
+                                <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Divider and Search Trigger Button */}
+                        <div className="w-px h-4 bg-white/15 mx-2 shrink-0" />
                         <button
-                          onClick={() => setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'))}
-                          title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
-                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsSearchActive(true);
+                          }}
+                          title="Cari memori..."
+                          className="relative flex items-center justify-center p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
                         >
-                          <ArrowUpDown size={11} className="text-white/60" />
-                          <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                          <Search size={12} />
+                          {searchQuery && (
+                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                          )}
+                        </button>
+
+                        {/* Divider and Theme Selector */}
+                        <div className="w-px h-4 bg-white/15 mx-2 shrink-0" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            cycleTimeTheme();
+                          }}
+                          title="Change Sky Atmosphere"
+                          className="relative flex items-center justify-center p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0 mr-1 ml-0.5"
+                        >
+                          {timeTheme === 'dawn' && <Sun size={12} className="text-amber-300 animate-pulse" />}
+                          {timeTheme === 'sunset' && <Sunset size={12} className="text-rose-400" />}
+                          {timeTheme === 'midnight' && <Moon size={12} className="text-indigo-200" />}
                         </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  {/* Divider and Theme Selector */}
-                  <div className="w-px h-4 bg-white/15 mx-2 shrink-0" />
-                  <button
-                    onClick={cycleTimeTheme}
-                    title="Change Sky Atmosphere"
-                    className="relative flex items-center justify-center p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-all duration-200 cursor-pointer active:scale-95 shrink-0 mr-1 ml-0.5"
-                  >
-                    {timeTheme === 'dawn' && <Sun size={12} className="text-amber-300 animate-pulse" />}
-                    {timeTheme === 'sunset' && <Sunset size={12} className="text-rose-400" />}
-                    {timeTheme === 'midnight' && <Moon size={12} className="text-indigo-200" />}
-                  </button>
-                </div>
+                </motion.div>
               </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Search bar */}
-          <AnimatePresence>
-            {!isHideHeader && (
-              <motion.section
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-                className="relative z-10 flex justify-center mb-3 px-4"
-              >
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/30 group-focus-within:text-white/60 transition-colors duration-300">
-                    <Search size={11} />
-                  </div>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Nyari apa cil?"
-                    className="bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-full py-1.5 pl-8 pr-4 text-xs tracking-wide text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 focus:bg-white/[0.06] transition-all duration-300 font-light shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-md"
-                    style={{ width: searchQuery ? `${Math.max(155, searchQuery.length * 8 + 60)}px` : '155px' }}
-                  />
-                </div>
-              </motion.section>
             )}
           </AnimatePresence>
 
@@ -834,7 +934,7 @@ export default function HomePage() {
                 {currentGalleryIndex > 0 && (
                   <button
                     onClick={handlePrevImage}
-                    className="absolute left-4 z-20 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 p-3 rounded-full backdrop-blur-md hidden sm:flex items-center justify-center"
+                    className="absolute left-4 z-20 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 p-3 rounded-full backdrop-blur-md flex items-center justify-center"
                   >
                     <ChevronLeft size={24} />
                   </button>
@@ -843,7 +943,7 @@ export default function HomePage() {
                 {currentGalleryIndex < allImages.length - 1 && (
                   <button
                     onClick={handleNextImage}
-                    className="absolute right-4 z-20 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 p-3 rounded-full backdrop-blur-md hidden sm:flex items-center justify-center"
+                    className="absolute right-4 z-20 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 p-3 rounded-full backdrop-blur-md flex items-center justify-center"
                   >
                     <ChevronRight size={24} />
                   </button>
@@ -872,8 +972,23 @@ export default function HomePage() {
                   <img
                     src={fullGalleryImage.url}
                     alt="Gallery Full Size"
-                    className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl cursor-grab active:cursor-grabbing mb-6 pointer-events-none"
+                    className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl cursor-grab active:cursor-grabbing mb-4 pointer-events-none"
                   />
+                  {/* Swipe dots — visible on touch devices instead of arrows */}
+                  {allImages.length > 1 && (
+                    <div className="swipe-hint items-center justify-center gap-1.5 mb-4">
+                      {allImages.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`rounded-full transition-all duration-300 ${
+                            i === currentGalleryIndex
+                              ? 'w-4 h-1.5 bg-white/80'
+                              : 'w-1.5 h-1.5 bg-white/30'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

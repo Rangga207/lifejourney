@@ -66,7 +66,144 @@ function ForegroundDust({ count = 250, mouseRef }: { count?: number, mouseRef: R
     );
 }
 
-export default function ParticleField({ count = 900 }: { count?: number }) {
+
+/* ─── Shooting Stars / Meteor Streaks ───────────────────────────────── */
+const METEOR_TRAIL = 30; // trail particles per meteor
+
+type MeteorState = {
+    x: number; y: number; z: number;
+    vx: number; vy: number;
+    speed: number;
+    trail: number;
+    maxLife: number;
+    alive: boolean;
+    life: number;
+    waitTime: number;
+};
+
+function newMeteorParams() {
+    const side = Math.random() > 0.5 ? 1 : -1;
+    const rawVx = -side * (0.45 + Math.random() * 0.40);
+    const rawVy = -(0.55 + Math.random() * 0.45);
+    const len = Math.sqrt(rawVx * rawVx + rawVy * rawVy);
+    const speed = 9 + Math.random() * 11;
+    const trail = 1.5 + Math.random() * 2.5;
+    return {
+        x: side * (11 + Math.random() * 9),
+        y: 3 + Math.random() * 9,
+        z: -6 - Math.random() * 22,
+        vx: rawVx / len,
+        vy: rawVy / len,
+        speed,
+        trail,
+        maxLife: (trail + 22) / speed,
+    };
+}
+
+function ShootingStars({ isMobile = false }: { isMobile?: boolean }) {
+    const METEOR_COUNT = isMobile ? 3 : 6;
+    const METEOR_TOTAL = METEOR_COUNT * METEOR_TRAIL;
+    const pointsRef = useRef<THREE.Points>(null);
+    const meteorsRef = useRef<MeteorState[]>([]);
+
+    const positions = useMemo(() => new Float32Array(METEOR_TOTAL * 3), []);
+    const colors    = useMemo(() => new Float32Array(METEOR_TOTAL * 3), []);
+
+    // Lazy-init meteor pool once
+    if (meteorsRef.current.length === 0) {
+        meteorsRef.current = Array.from({ length: METEOR_COUNT }, (_, i): MeteorState => ({
+            ...newMeteorParams(),
+            alive: false,
+            life: 0,
+            waitTime: 1 + i * 1.8 + Math.random() * 2, // staggered initial delays
+        }));
+    }
+
+    useFrame((_, delta) => {
+        const ms = meteorsRef.current;
+
+        ms.forEach((m, mi) => {
+            const base = mi * METEOR_TRAIL;
+
+            if (!m.alive) {
+                m.waitTime -= delta;
+                if (m.waitTime <= 0) {
+                    Object.assign(m, newMeteorParams());
+                    m.alive = true;
+                    m.life = 0;
+                }
+                // keep trail invisible while waiting
+                for (let ti = 0; ti < METEOR_TRAIL; ti++) {
+                    const idx = (base + ti) * 3;
+                    colors[idx] = colors[idx + 1] = colors[idx + 2] = 0;
+                    positions[idx] = positions[idx + 1] = positions[idx + 2] = 0;
+                }
+                return;
+            }
+
+            m.life += delta;
+
+            if (m.life >= m.maxLife || m.y < -14) {
+                m.alive    = false;
+                m.waitTime = 3 + Math.random() * 9;
+                return;
+            }
+
+            // Move head forward
+            m.x += m.vx * m.speed * delta;
+            m.y += m.vy * m.speed * delta;
+
+            // Fade envelope: quick fade-in, slow fade-out
+            const fadeIn  = Math.min(m.life * 10, 1);
+            const fadeOut = Math.min((m.maxLife - m.life) * 4, 1);
+            const env     = fadeIn * fadeOut;
+
+            // Write trail particles (ti=0 → tail, ti=TRAIL-1 → head)
+            for (let ti = 0; ti < METEOR_TRAIL; ti++) {
+                const frac   = ti / (METEOR_TRAIL - 1); // 0 = tail, 1 = head
+                const offset = (1 - frac) * m.trail;
+
+                const idx = (base + ti) * 3;
+                positions[idx]     = m.x - m.vx * offset;
+                positions[idx + 1] = m.y - m.vy * offset;
+                positions[idx + 2] = m.z;
+
+                // Brightness → quadratic from tail (black) to head (white)
+                // Additive blending makes black = fully transparent automatically
+                const brightness   = frac * frac * env;
+                colors[idx]        = brightness;
+                colors[idx + 1]    = brightness * 0.93; // slight warm tint
+                colors[idx + 2]    = brightness * 0.88;
+            }
+        });
+
+        if (pointsRef.current) {
+            const geo = pointsRef.current.geometry;
+            (geo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+            (geo.attributes.color    as THREE.BufferAttribute).needsUpdate = true;
+        }
+    });
+
+    return (
+        <points ref={pointsRef}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" count={METEOR_TOTAL} args={[positions, 3]} />
+                <bufferAttribute attach="attributes-color"    count={METEOR_TOTAL} args={[colors,    3]} />
+            </bufferGeometry>
+            <pointsMaterial
+                size={0.09}
+                vertexColors
+                transparent
+                opacity={1.0}
+                depthWrite={false}
+                blending={THREE.AdditiveBlending}
+                sizeAttenuation
+            />
+        </points>
+    );
+}
+
+export default function ParticleField({ count = 900, isMobile = false }: { count?: number; isMobile?: boolean }) {
     const pointsRef = useRef<THREE.Points>(null);
     const shaderRef = useRef<any>(null);
     const mouseRef = useRef({ x: 0, y: 0 });
@@ -76,8 +213,20 @@ export default function ParticleField({ count = 900 }: { count?: number }) {
             mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
         };
+        // Touch parallax: lets mobile users get the same camera parallax
+        // effect by dragging/scrolling their finger across the screen.
+        const handleTouchMove = (e: TouchEvent) => {
+            const touch = e.touches[0];
+            if (!touch) return;
+            mouseRef.current.x = (touch.clientX / window.innerWidth) * 2 - 1;
+            mouseRef.current.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+        };
         window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+        window.addEventListener('touchmove', handleTouchMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('touchmove', handleTouchMove);
+        };
     }, []);
 
     const { positions, colors } = useMemo(() => {
@@ -193,8 +342,9 @@ export default function ParticleField({ count = 900 }: { count?: number }) {
                 }}
             />
         </points>
-        <ForegroundDust mouseRef={mouseRef} />
+        <ForegroundDust count={isMobile ? 100 : 250} mouseRef={mouseRef} />
         <CosmicStardust />
+        <ShootingStars isMobile={isMobile} />
         </>
     );
 }

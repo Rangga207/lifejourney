@@ -96,4 +96,47 @@
     min-width: 44px;
     min-height: 44px;
   }
+
+  /* ─── Mobile-specific fixes ─────────────────────────────────────────── */
+
+  /* Prevent the canvas background from creating a horizontal scrollbar on narrow
+     screens when transform: scale(1.025) is active (modal open / blur state). */
+  .canvas-wrapper {
+    overflow: hidden;
+  }
+
+  /* Search input: on phones the dynamic px calculation can produce widths that
+     are too small. Clamp to at least 180px but no wider than 85vw. */
+  @media (max-width: 640px) {
+    .search-input-mobile {
+      min-width: min(180px, 78vw) !important;
+      max-width: 85vw !important;
+    }
+  }
+
+  /* Gallery image swipe dots shown on touch devices instead of arrow buttons */
+  .swipe-hint {
+    display: none;
+  }
+  @media (hover: none) and (pointer: coarse) {
+    .swipe-hint {
+      display: flex;
+    }
+    /* Make sure opacity-0 sm:opacity-100 buttons stay visible on touch screens */
+    .touch-visible {
+      opacity: 1 !important;
+    }
+  }
+
+  /* Smooth momentum scrolling for horizontally scrollable carousels */
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Prevent accidental page zoom on double-tap in interactive areas */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
 }

@@ -29,6 +29,8 @@ const fragmentShader = /* glsl */ `
   uniform vec3  uColor3;
   uniform float uOpacity;
   uniform float uScale;
+  uniform float uPulse;
+  uniform int   uOctaves;   // 3 = desktop quality, 2 = mobile quality
 
   varying vec2 vUv;
 
@@ -52,7 +54,7 @@ const fragmentShader = /* glsl */ `
     );
   }
 
-  /* ── 3-octave Fractal Brownian Motion (Optimized) ───────── */
+  /* ── 3-octave Fractal Brownian Motion (adaptive octaves) ───── */
   float fbm(vec2 p) {
     float v = 0.0;
     float a = 0.5;
@@ -60,6 +62,7 @@ const fragmentShader = /* glsl */ `
     /* Rotation matrix to reduce axis-aligned artefacts */
     mat2  rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
     for (int i = 0; i < 3; i++) {
+      if (i >= uOctaves) break;   // mobile: skip 3rd octave (i==2)
       v += a * noise(p);
       p = rot * p * 2.1 + shift;
       a *= 0.5;
@@ -89,8 +92,8 @@ const fragmentShader = /* glsl */ `
     float dist  = length(vUv * 2.0 - 1.0);
     float radial = smoothstep(1.05, 0.15, dist);
 
-    /* Final alpha: noise density × radial × global opacity */
-    float alpha = f * f * radial * uOpacity;
+    /* Final alpha: noise density × radial × global opacity × glow pulse */
+    float alpha = f * f * radial * uOpacity * (0.72 + uPulse * 0.28);
     alpha = clamp(alpha, 0.0, 1.0);
 
     gl_FragColor = vec4(col * alpha, alpha);
@@ -110,6 +113,7 @@ interface NebulaLayerProps {
   opacity: number;
   scale: number;
   speed?: number; // time multiplier offset
+  octaves?: number; // FBM octaves: 3 = desktop, 2 = mobile
 }
 
 function NebulaLayer({
@@ -122,6 +126,7 @@ function NebulaLayer({
   opacity,
   scale,
   speed = 1.0,
+  octaves = 3,
 }: NebulaLayerProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -144,6 +149,8 @@ function NebulaLayer({
       uColor3:  { value: new THREE.Color(color3) },
       uOpacity: { value: opacity },
       uScale:   { value: scale },
+      uPulse:   { value: 0.5 },
+      uOctaves: { value: octaves },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -154,11 +161,18 @@ function NebulaLayer({
   // React's effect scheduling and the WebGL render loop are not synchronised.
   useFrame(({ clock }) => {
     if (matRef.current) {
-      matRef.current.uniforms.uTime.value = clock.getElapsedTime() * speed;
+      const t = clock.getElapsedTime() * speed;
+      matRef.current.uniforms.uTime.value = t;
       matRef.current.uniforms.uColor1.value.set(c1Ref.current);
       matRef.current.uniforms.uColor2.value.set(c2Ref.current);
       matRef.current.uniforms.uColor3.value.set(c3Ref.current);
       matRef.current.uniforms.uOpacity.value = opacityRef.current;
+      // Organic glow pulse — three overlapping sine waves create a non-repeating breathing rhythm
+      const rawPulse =
+        Math.sin(t * 0.40) * 0.40 +          // slow breath ~0.4 Hz
+        Math.sin(t * 1.10 + 1.20) * 0.25 +  // mid beat ~1.1 Hz
+        Math.sin(t * 0.15 + 2.70) * 0.15;   // very slow swell ~0.15 Hz
+      matRef.current.uniforms.uPulse.value = 0.5 + rawPulse * 0.5;
     }
   });
 
@@ -186,9 +200,12 @@ function NebulaLayer({
 ────────────────────────────────────────────────────────────── */
 interface NebulaCloudProps {
   timeTheme?: 'dawn' | 'sunset' | 'midnight';
+  isMobile?: boolean;
 }
 
-export default function NebulaCloud({ timeTheme = 'midnight' }: NebulaCloudProps) {
+export default function NebulaCloud({ timeTheme = 'midnight', isMobile = false }: NebulaCloudProps) {
+  // On mobile: 2 FBM octaves (vs 3) cuts shader cost ~33% — imperceptible at 1× DPR
+  const octaves = isMobile ? 2 : 3;
   // Define theme-based dynamic colors
   const themeColors = useMemo(() => {
     switch (timeTheme) {
@@ -226,6 +243,7 @@ export default function NebulaCloud({ timeTheme = 'midnight' }: NebulaCloudProps
         opacity={0.5}
         scale={1.1}
         speed={0.5}
+        octaves={octaves}
       />
 
       {/* ── Layer 2: Warm bloom — upper right warm glow */}
@@ -239,6 +257,7 @@ export default function NebulaCloud({ timeTheme = 'midnight' }: NebulaCloudProps
         opacity={0.4}
         scale={1.3}
         speed={0.6}
+        octaves={octaves}
       />
 
       {/* ── Layer 3: Cool drift — lower left cool drift */}
@@ -252,6 +271,7 @@ export default function NebulaCloud({ timeTheme = 'midnight' }: NebulaCloudProps
         opacity={0.3}
         scale={1.2}
         speed={0.8}
+        octaves={octaves}
       />
     </group>
   );
