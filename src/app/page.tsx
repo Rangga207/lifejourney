@@ -426,21 +426,19 @@ export default function HomePage() {
               >
                 <motion.div
                   layout
-                  onMouseEnter={() => setIsNavbarHovered(true)}
                   onMouseLeave={() => setIsNavbarHovered(false)}
                   onClick={() => {
-                    if (isCollapsed && !isNavbarHovered) {
+                    if (isCollapsed) {
                       setIsNavbarHovered(true);
                     }
                   }}
-                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-colors duration-300 max-w-[95vw] ${
-                    isSearchActive
+                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-colors duration-300 max-w-[95vw] ${isSearchActive
                       ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
                       : isCollapsed
-                      ? 'w-auto h-[46px] bg-black/85 border-white/20 p-1 rounded-full cursor-pointer'
-                      : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
-                  }`}
-                  transition={{ type: 'spring', stiffness: 140, damping: 24 }}
+                        ? 'w-auto h-[46px] bg-black/85 border-white/20 p-1 rounded-full cursor-pointer'
+                        : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
+                    }`}
+                  transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.52 }}
                 >
                   <AnimatePresence mode="wait">
                     {!isSearchActive ? (
@@ -471,7 +469,7 @@ export default function HomePage() {
                               <motion.div
                                 layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'spring', stiffness: 140, damping: 24 }}
+                                transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
                               />
                             )}
                             <LayoutGrid size={13} className="relative z-10 text-white shrink-0" />
@@ -483,10 +481,9 @@ export default function HomePage() {
                                   animate={{ opacity: 1, scale: 1, width: 'auto' }}
                                   exit={{ opacity: 0, scale: 0.8, width: 0 }}
                                   transition={{
-                                    width: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.35 },
-                                    opacity: { duration: 0.15 },
-                                    scale: { type: 'spring', stiffness: 140, damping: 24 },
-                                    layout: { type: 'spring', stiffness: 140, damping: 24 }
+                                    type: 'tween',
+                                    ease: [0.25, 1, 0.25, 1],
+                                    duration: 0.38
                                   }}
                                   className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-1 sm:ml-1.5"
                                 >
@@ -508,7 +505,7 @@ export default function HomePage() {
                               <motion.div
                                 layoutId="active-tab"
                                 className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'spring', stiffness: 140, damping: 24 }}
+                                transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
                               />
                             )}
                             <ImageIcon size={13} className="relative z-10 text-white shrink-0" />
@@ -520,10 +517,9 @@ export default function HomePage() {
                                   animate={{ opacity: 1, scale: 1, width: 'auto' }}
                                   exit={{ opacity: 0, scale: 0.8, width: 0 }}
                                   transition={{
-                                    width: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.35 },
-                                    opacity: { duration: 0.15 },
-                                    scale: { type: 'spring', stiffness: 140, damping: 24 },
-                                    layout: { type: 'spring', stiffness: 140, damping: 24 }
+                                    type: 'tween',
+                                    ease: [0.25, 1, 0.25, 1],
+                                    duration: 0.38
                                   }}
                                   className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-1 sm:ml-1.5"
                                 >
@@ -544,10 +540,9 @@ export default function HomePage() {
                               animate={{ opacity: 1, scale: 1, width: 'auto' }}
                               exit={{ opacity: 0, scale: 0.95, width: 0 }}
                               transition={{
-                                width: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.35 },
-                                opacity: { duration: 0.15 },
-                                scale: { type: 'spring', stiffness: 140, damping: 24 },
-                                layout: { type: 'spring', stiffness: 140, damping: 24 }
+                                type: 'tween',
+                                ease: [0.25, 1, 0.25, 1],
+                                duration: 0.38
                               }}
                               className="flex items-center gap-1 sm:gap-1.5 overflow-hidden shrink-0"
                             >
@@ -569,7 +564,7 @@ export default function HomePage() {
                                     <motion.div
                                       layoutId="active-view"
                                       className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'spring', stiffness: 140, damping: 24 }}
+                                      transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
                                     />
                                   )}
                                   <LayoutGrid size={13} className="relative z-10 text-white" />
@@ -587,7 +582,7 @@ export default function HomePage() {
                                     <motion.div
                                       layoutId="active-view"
                                       className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                      transition={{ type: 'spring', stiffness: 140, damping: 24 }}
+                                      transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
                                     />
                                   )}
                                   <AlignLeft size={13} className="relative z-10 text-white" />
@@ -681,7 +676,7 @@ export default function HomePage() {
                           }}
                           className="text-[11px] font-medium text-white/50 hover:text-white transition-colors cursor-pointer shrink-0 mr-1"
                         >
-                          Batal
+                          Cancel
                         </button>
                       </motion.div>
                     )}
@@ -1017,11 +1012,10 @@ export default function HomePage() {
                       {allImages.map((_, i) => (
                         <div
                           key={i}
-                          className={`rounded-full transition-all duration-300 ${
-                            i === currentGalleryIndex
+                          className={`rounded-full transition-all duration-300 ${i === currentGalleryIndex
                               ? 'w-4 h-1.5 bg-white/80'
                               : 'w-1.5 h-1.5 bg-white/30'
-                          }`}
+                            }`}
                         />
                       ))}
                     </div>
