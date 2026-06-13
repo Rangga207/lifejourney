@@ -342,8 +342,8 @@ export default function ParticleField({ count = 900, isMobile = false }: { count
                 }}
             />
         </points>
-        <ForegroundDust count={isMobile ? 100 : 250} mouseRef={mouseRef} />
-        <CosmicStardust />
+        {!isMobile && <ForegroundDust count={250} mouseRef={mouseRef} />}
+        {!isMobile && <CosmicStardust />}
         <ShootingStars isMobile={isMobile} />
         </>
     );

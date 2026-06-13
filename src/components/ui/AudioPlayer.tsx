@@ -99,7 +99,7 @@ export default function AudioPlayer({ visible = true }: { visible?: boolean }) {
                                 </motion.div>
 
                                 <span className="text-[11px] tracking-wide text-white/80 font-sans font-light max-w-[80px] truncate hidden sm:block">
-                                    Love Epiphany
+                                    Journey Theme
                                 </span>
 
                                 <div className="text-white/70 group-hover:text-white ml-0.5">

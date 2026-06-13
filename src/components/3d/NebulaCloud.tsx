@@ -247,32 +247,36 @@ export default function NebulaCloud({ timeTheme = 'midnight', isMobile = false }
       />
 
       {/* ── Layer 2: Warm bloom — upper right warm glow */}
-      <NebulaLayer
-        position={[15, 5, -48]}
-        rotation={[0, 0, 0.4]}
-        size={90}
-        color1={themeColors.l2.c1}
-        color2={themeColors.l2.c2}
-        color3={themeColors.l2.c3}
-        opacity={0.4}
-        scale={1.3}
-        speed={0.6}
-        octaves={octaves}
-      />
+      {!isMobile && (
+        <NebulaLayer
+          position={[15, 5, -48]}
+          rotation={[0, 0, 0.4]}
+          size={90}
+          color1={themeColors.l2.c1}
+          color2={themeColors.l2.c2}
+          color3={themeColors.l2.c3}
+          opacity={0.4}
+          scale={1.3}
+          speed={0.6}
+          octaves={octaves}
+        />
+      )}
 
       {/* ── Layer 3: Cool drift — lower left cool drift */}
-      <NebulaLayer
-        position={[-15, -6, -44]}
-        rotation={[0, 0, -0.3]}
-        size={85}
-        color1={themeColors.l3.c1}
-        color2={themeColors.l3.c2}
-        color3={themeColors.l3.c3}
-        opacity={0.3}
-        scale={1.2}
-        speed={0.8}
-        octaves={octaves}
-      />
+      {!isMobile && (
+        <NebulaLayer
+          position={[-15, -6, -44]}
+          rotation={[0, 0, -0.3]}
+          size={85}
+          color1={themeColors.l3.c1}
+          color2={themeColors.l3.c2}
+          color3={themeColors.l3.c3}
+          opacity={0.3}
+          scale={1.2}
+          speed={0.8}
+          octaves={octaves}
+        />
+      )}
     </group>
   );
 }

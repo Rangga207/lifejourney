@@ -5,14 +5,14 @@ import { Sphere, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Memory } from '@/app/actions';
 
-function OrbitingMercury({ timeTheme = 'midnight' }: { timeTheme?: 'dawn' | 'sunset' | 'midnight' }) {
+function OrbitingMercury({ timeTheme = 'midnight', isMobile: isMobileProp }: { timeTheme?: 'dawn' | 'sunset' | 'midnight', isMobile?: boolean }) {
     const planetRef = useRef<THREE.Mesh>(null);
     const shaderRef = useRef<any>(null);
     const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
     const { viewport } = useThree();
 
-    // Check if device is in portrait/mobile view based on viewport aspect ratio
-    const isMobile = viewport.width < viewport.height;
+    // Check if device is in portrait/mobile view based on viewport aspect ratio or prop
+    const isMobile = isMobileProp ?? (viewport.width < viewport.height);
 
     // Adjust planet scale and position for mobile vs desktop
     const radius = isMobile ? 12 : 15;
@@ -62,14 +62,14 @@ function OrbitingMercury({ timeTheme = 'midnight' }: { timeTheme?: 'dawn' | 'sun
         }
     }, [planetColors]);
 
-    useFrame((_, delta) => {
+    useFrame((state, delta) => {
         if (planetRef.current) {
             // Planet rotates on its own axis slowly, rendering the craters crossing the light
             planetRef.current.rotation.y += delta * 0.015;
             planetRef.current.rotation.z += delta * 0.002;
 
-            // Simulating satellite orbit drift (gentle float)
-            planetRef.current.position.y = posY + Math.sin(Date.now() * 0.0003) * 0.002;
+            // Simulating satellite orbit drift (gentle float) using high performance clock
+            planetRef.current.position.y = posY + Math.sin(state.clock.getElapsedTime() * 0.3) * 0.002;
         }
     });
 
@@ -77,7 +77,7 @@ function OrbitingMercury({ timeTheme = 'midnight' }: { timeTheme?: 'dawn' | 'sun
         <group>
             {/* The massive planet close-up.
                 Placed at bottom-right, creating a gorgeous massive crescent flyby look */}
-            <Sphere ref={planetRef} args={[radius, 64, 64]} position={[posX, posY, -30]}>
+            <Sphere ref={planetRef} args={[radius, isMobile ? 32 : 64, isMobile ? 32 : 64]} position={[posX, posY, -30]}>
                 <meshStandardMaterial
                     map={texture}
                     bumpMap={texture}
@@ -129,7 +129,7 @@ function OrbitingMercury({ timeTheme = 'midnight' }: { timeTheme?: 'dawn' | 'sun
             </Sphere>
 
             {/* Cinematic Multilayered Atmospheric Glow to hide hard polygon edges */}
-            <Sphere args={[radius + 0.2, 32, 32]} position={[posX, posY, -30]}>
+            <Sphere args={[radius + 0.2, isMobile ? 16 : 32, isMobile ? 16 : 32]} position={[posX, posY, -30]}>
                 <meshBasicMaterial
                     color={planetColors.glow1}
                     transparent
@@ -139,7 +139,7 @@ function OrbitingMercury({ timeTheme = 'midnight' }: { timeTheme?: 'dawn' | 'sun
                     depthWrite={false}
                 />
             </Sphere>
-            <Sphere args={[radius + 0.6, 16, 16]} position={[posX, posY, -30]}>
+            <Sphere args={[radius + 0.6, isMobile ? 8 : 16, isMobile ? 8 : 16]} position={[posX, posY, -30]}>
                 <meshBasicMaterial
                     color={planetColors.glow2}
                     transparent
@@ -155,16 +155,17 @@ function OrbitingMercury({ timeTheme = 'midnight' }: { timeTheme?: 'dawn' | 'sun
 
 export default function SpaceObjects({ 
     memories = [], 
-    timeTheme = 'midnight' 
+    timeTheme = 'midnight',
+    isMobile = false
 }: { 
     memories?: Memory[]; 
     timeTheme?: 'dawn' | 'sunset' | 'midnight'; 
+    isMobile?: boolean;
 }) {
     const { viewport } = useThree();
     const shootingStarRef = useRef<THREE.Group>(null);
     const starMatRef = useRef<THREE.MeshBasicMaterial>(null);
     const cometState = useRef({ life: 0, active: false });
-    const isMobile = viewport.width < viewport.height;
 
     // Resolve theme-based lighting settings
     const lighting = useMemo(() => {
@@ -208,6 +209,7 @@ export default function SpaceObjects({
 
     // Shooting star animation
     useFrame((state, delta) => {
+        if (isMobile) return;
         if (shootingStarRef.current && starMatRef.current) {
             const star = shootingStarRef.current;
 
@@ -253,7 +255,7 @@ export default function SpaceObjects({
             <directionalLight position={[20, -10, -20]} intensity={lighting.dir2Intensity} color={lighting.dir2Color} />
 
             {/* Deep Space Nebula Glow (Subtle cosmic dust) */}
-            <Sphere args={[50, 32, 32]} position={[0, 0, -45]}>
+            <Sphere args={[50, isMobile ? 8 : 32, isMobile ? 8 : 32]} position={[0, 0, -45]}>
                 <meshBasicMaterial
                     color={lighting.sphereColor}
                     transparent
@@ -265,18 +267,20 @@ export default function SpaceObjects({
             </Sphere>
 
             <Suspense fallback={null}>
-                <OrbitingMercury timeTheme={timeTheme} />
+                <OrbitingMercury timeTheme={timeTheme} isMobile={isMobile} />
             </Suspense>
 
             {/* Shooting Star Group */}
-            <group ref={shootingStarRef} position={[-40, 20, -20]}>
-                {/* Using a highly stretched single sphere creates a beautiful seamless comet teardrop shape, 
-                    replacing the chunky flat-bottomed cylinder! */}
-                <mesh rotation={[Math.PI / 2, 0, 0]} scale={[1, 12, 1]}>
-                    <sphereGeometry args={[0.05, 16, 16]} />
-                    <meshBasicMaterial ref={starMatRef} color="#ffffff" transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} />
-                </mesh>
-            </group>
+            {!isMobile && (
+                <group ref={shootingStarRef} position={[-40, 20, -20]}>
+                    {/* Using a highly stretched single sphere creates a beautiful seamless comet teardrop shape, 
+                        replacing the chunky flat-bottomed cylinder! */}
+                    <mesh rotation={[Math.PI / 2, 0, 0]} scale={[1, 12, 1]}>
+                        <sphereGeometry args={[0.05, 16, 16]} />
+                        <meshBasicMaterial ref={starMatRef} color="#ffffff" transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} />
+                    </mesh>
+                </group>
+            )}
         </group>
     );
 }

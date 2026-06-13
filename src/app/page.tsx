@@ -8,7 +8,6 @@ import AddMemoryModal from '@/components/ui/AddMemoryModal';
 import AudioPlayer from '@/components/ui/AudioPlayer';
 import { getMemories, addMemory, removeMemory, updateMemory, type Memory } from '@/app/actions';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { LoginOverlay } from '@/components/ui/LoginOverlay';
 
 // Dynamically import the 3D Canvas to avoid SSR issues
 const CanvasScene = dynamic(() => import('@/components/3d/CanvasScene'), {
@@ -18,7 +17,6 @@ const CanvasScene = dynamic(() => import('@/components/3d/CanvasScene'), {
 export default function HomePage() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [titleVisible, setTitleVisible] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'memories' | 'gallery'>('memories');
@@ -62,7 +60,6 @@ export default function HomePage() {
 
   const [activeModals, setActiveModals] = useState<Record<string, boolean>>({});
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [showBlackCurtain, setShowBlackCurtain] = useState(false);
 
   const handleModalToggle = useCallback((id: string, isOpen: boolean) => {
     setActiveModals((prev) => {
@@ -112,12 +109,6 @@ export default function HomePage() {
   }, [memories, searchQuery]);
 
   useEffect(() => {
-    const auth = localStorage.getItem('memory_auth');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
     getMemories().then(data => setMemories(data));
   }, []);
 
@@ -131,15 +122,13 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      const t = setTimeout(() => setTitleVisible(true), 300);
-      const t2 = setTimeout(() => setInitialLoad(false), 3000);
-      return () => {
-        clearTimeout(t);
-        clearTimeout(t2);
-      };
-    }
-  }, [isAuthenticated]);
+    const t = setTimeout(() => setTitleVisible(true), 300);
+    const t2 = setTimeout(() => setInitialLoad(false), 3000);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(t2);
+    };
+  }, []);
 
   // Unified camera focus controller: strictly reactive, no race conditions, perfectly synchronizes search and modal state
   useEffect(() => {
@@ -160,13 +149,6 @@ export default function HomePage() {
     }
   }, [searchQuery, memories, activeMemoryId]);
 
-  const handleLoginSuccess = () => {
-    localStorage.setItem('memory_auth', 'true');
-    setIsAuthenticated(true);
-    // Show black curtain that slowly fades out to reveal the website
-    setShowBlackCurtain(true);
-    setTimeout(() => setShowBlackCurtain(false), 80);
-  };
 
   const handleAdd = async (memoryData: { title: string; content: string; imageUrl?: string; imageUrls?: string[]; isGalleryOnly?: boolean; hideFromGallery?: boolean }) => {
     const newMemory = await addMemory(memoryData);
@@ -346,24 +328,6 @@ export default function HomePage() {
         }}
       />
 
-      {isAuthenticated === false && (
-        <LoginOverlay onLoginSuccess={handleLoginSuccess} />
-      )}
-
-      {/* Black reveal curtain — fades out after login to smoothly reveal the website */}
-      <AnimatePresence>
-        {showBlackCurtain && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-[190] bg-black pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
-
-      {isAuthenticated === true && (
         <div className="relative z-10 flex flex-col min-h-screen">
           {/* Header */}
           <AnimatePresence>
@@ -394,7 +358,7 @@ export default function HomePage() {
                             className="text-[10px] sm:text-[12px] uppercase tracking-[0.55em] text-white font-extralight ml-[0.25em]"
                             style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
                           >
-                            Final Chapter
+                            Life Journey
                           </span>
                         </div>
 
@@ -648,7 +612,7 @@ export default function HomePage() {
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Nyari apa cil?"
+                          placeholder="Cari momen..."
                           autoFocus
                           className="w-full bg-transparent border-none text-xs text-white placeholder-white/30 focus:outline-none font-light py-1"
                         />
@@ -1030,7 +994,6 @@ export default function HomePage() {
             )}
           </AnimatePresence>
         </div>
-      )}
     </main>
   );
 }

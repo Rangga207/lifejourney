@@ -22,8 +22,8 @@ const serif = Cinzel({
 });
 
 export const metadata: Metadata = {
-  title: "Memory of Us",
-  description: "A 3D space for our memories",
+  title: "Life Journey",
+  description: "My personal life journal and timeline",
 };
 
 export default function RootLayout({

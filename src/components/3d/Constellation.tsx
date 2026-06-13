@@ -10,6 +10,7 @@ interface ConstellationProps {
     activeMemoryId: string | null;
     onSelectMemory: (id: string | null) => void;
     isSearchZoom?: boolean;
+    isMobile?: boolean;
 }
 
 function MemoryStar({
@@ -20,6 +21,7 @@ function MemoryStar({
     onClick,
     onHover,
     onBlur,
+    isMobile = false,
 }: {
     memory: Memory;
     position: THREE.Vector3;
@@ -28,16 +30,17 @@ function MemoryStar({
     onClick: () => void;
     onHover: () => void;
     onBlur: () => void;
+    isMobile?: boolean;
 }) {
     const glowRef = useRef<THREE.Mesh>(null);
     const starRef = useRef<THREE.Mesh>(null);
     const orbitRefs = useRef<THREE.Group>(null);
 
-    // Orbiting stardust configuration
-    const orbitCount = 6;
-    const orbitSpeed = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * 2.0 + 1.2), []);
-    const orbitRadius = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * 0.16 + 0.14), []);
-    const orbitPhase = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * Math.PI * 2), []);
+    // Orbiting stardust configuration (disabled on mobile to save multiple useFrame loop updates)
+    const orbitCount = isMobile ? 0 : 6;
+    const orbitSpeed = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * 2.0 + 1.2), [orbitCount]);
+    const orbitRadius = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * 0.16 + 0.14), [orbitCount]);
+    const orbitPhase = useMemo(() => Array.from({ length: orbitCount }, () => Math.random() * Math.PI * 2), [orbitCount]);
 
     // Blending colors: neutral sky-blue/white (matching ParticleField space dust) and custom vibrant colors
     const vibrantColor = useMemo(() => new THREE.Color(memory.color || '#c084fc'), [memory.color]);
@@ -153,7 +156,7 @@ function MemoryStar({
                     onBlur();
                 }}
             >
-                <octahedronGeometry args={[0.08, 1]} /> {/* Soft geodesic sphere-like crystal */}
+                <octahedronGeometry args={[0.08, isMobile ? 0 : 1]} /> {/* Soft geodesic sphere-like crystal (simpler shape on mobile) */}
                 <meshStandardMaterial
                     color={starColor}
                     emissive={starColor}
@@ -197,11 +200,13 @@ function CameraRig({
     memories,
     points,
     isSearchZoom,
+    isMobile = false,
 }: {
     activeMemoryId: string | null;
     memories: Memory[];
     points: THREE.Vector3[];
     isSearchZoom?: boolean;
+    isMobile?: boolean;
 }) {
     const { camera } = useThree();
     
@@ -245,9 +250,12 @@ function CameraRig({
             : 1.8;
         const t = 1.0 - Math.exp(-lerpSpeed * clampedDelta);
         
-        camera.position.lerp(targetPos.current, t);
-        currentLookAt.current.lerp(targetLookAt.current, t);
-        camera.lookAt(currentLookAt.current);
+        // Skip updating camera matrix if it has already reached the target within a tiny threshold (avoids continuous matrix updates)
+        if (camera.position.distanceToSquared(targetPos.current) > 0.00001 || currentLookAt.current.distanceToSquared(targetLookAt.current) > 0.00001) {
+            camera.position.lerp(targetPos.current, t);
+            currentLookAt.current.lerp(targetLookAt.current, t);
+            camera.lookAt(currentLookAt.current);
+        }
     });
 
     return null;
@@ -258,6 +266,7 @@ export default function Constellation({
     activeMemoryId,
     onSelectMemory,
     isSearchZoom,
+    isMobile = false,
 }: ConstellationProps) {
     const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -310,6 +319,7 @@ export default function Constellation({
                 memories={chronologicalMemories}
                 points={points}
                 isSearchZoom={isSearchZoom}
+                isMobile={isMobile}
             />
 
             {/* Constellation Connection lines */}
@@ -317,7 +327,7 @@ export default function Constellation({
                 <Line
                     points={linePoints}
                     color="#ffffff"
-                    lineWidth={1.0}
+                    lineWidth={isMobile ? 0.5 : 1.0}
                     transparent
                     opacity={0.16}
                     blending={THREE.AdditiveBlending}
@@ -338,6 +348,7 @@ export default function Constellation({
                         onClick={() => onSelectMemory(memory.id)}
                         onHover={() => setHoveredId(memory.id)}
                         onBlur={() => setHoveredId(null)}
+                        isMobile={isMobile}
                     />
                 );
             })}

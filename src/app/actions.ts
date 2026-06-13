@@ -4,10 +4,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 
-export async function verifyLogin(pin: string): Promise<boolean> {
-    // Check against the 6-digit numeric passcode
-    return pin === '230706';
-}
 
 export interface Memory {
     id: string;
@@ -132,7 +128,7 @@ export async function addMemory(data: { title: string; content: string; imageUrl
         id: memoryId,
         title: data.title,
         content: data.content,
-        emoji: '💌',
+        emoji: '✨',
         color: '',
         imageUrl: processedUrls ? processedUrls[0] : undefined,
         imageUrls: processedUrls,

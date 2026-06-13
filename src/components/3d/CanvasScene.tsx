@@ -51,7 +51,7 @@ export default function CanvasScene({
     const dpr = isMobile ? [1, 1] as [number, number] : [1, 1.5] as [number, number];
 
     // Adaptive particle count: keeps the visual feel, reduces draw cost.
-    const particleCount = isMobile ? 420 : 900;
+    const particleCount = isMobile ? 180 : 900;
 
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -10 }}>
@@ -63,12 +63,13 @@ export default function CanvasScene({
                 {/* Nebula renders first — deepest background layer */}
                 <NebulaCloud timeTheme={timeTheme} isMobile={isMobile} />
                 <ParticleField count={particleCount} isMobile={isMobile} />
-                <SpaceObjects memories={memories} timeTheme={timeTheme} />
+                <SpaceObjects memories={memories} timeTheme={timeTheme} isMobile={isMobile} />
                 <Constellation 
                     memories={memories} 
                     activeMemoryId={activeMemoryId} 
                     onSelectMemory={onSelectMemory}
                     isSearchZoom={isSearchZoom}
+                    isMobile={isMobile}
                 />
             </Canvas>
         </div>
