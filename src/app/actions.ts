@@ -1,9 +1,18 @@
 'use server';
 
+import { Redis } from '@upstash/redis';
 import fs from 'fs/promises';
 import path from 'path';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 
+function getRedisClient() {
+    const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (url && token) {
+        return new Redis({ url, token });
+    }
+    return null;
+}
 
 export interface Memory {
     id: string;
@@ -23,19 +32,13 @@ const dbPath = path.join(process.cwd(), 'database.json');
 async function getDb(): Promise<Memory[]> {
     noStore();
     
-    const kvUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-    const kvToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-    
-    if (kvUrl && kvToken) {
+    const redis = getRedisClient();
+    if (redis) {
         try {
-            const res = await fetch(`${kvUrl}/get/memories_metadata`, {
-                headers: { Authorization: `Bearer ${kvToken}` },
-                cache: 'no-store'
-            });
-            const json = await res.json();
-            if (json.result) {
-                const data = typeof json.result === 'string' ? JSON.parse(json.result) : json.result;
-                return Array.isArray(data) ? data : [];
+            const data = await redis.get('memories_metadata');
+            if (data) {
+                const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+                return Array.isArray(parsed) ? parsed : [];
             }
             return [];
         } catch (e) {
@@ -52,20 +55,11 @@ async function getDb(): Promise<Memory[]> {
 }
 
 async function saveDb(memories: Memory[]) {
-    const kvUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-    const kvToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+    const redis = getRedisClient();
 
-    if (kvUrl && kvToken) {
+    if (redis) {
         try {
-            const res = await fetch(`${kvUrl}/set/memories_metadata`, {
-                method: 'POST',
-                headers: { 
-                    Authorization: `Bearer ${kvToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(memories)
-            });
-            if (!res.ok) throw new Error("Failed to save metadata");
+            await redis.set('memories_metadata', memories);
             return;
         } catch (e) {
             console.error("Vercel KV Write Error:", e);
@@ -77,16 +71,11 @@ async function saveDb(memories: Memory[]) {
 }
 
 async function saveImageToCloud(id: string, base64: string): Promise<string> {
-    const kvUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-    const kvToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-    if (kvUrl && kvToken) {
+    const redis = getRedisClient();
+    if (redis) {
         // Only save if it is actually base64 (not already an API route URL)
         if (base64.startsWith('data:image')) {
-            await fetch(`${kvUrl}/set/img_${id}`, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${kvToken}` },
-                body: base64
-            });
+            await redis.set(`img_${id}`, base64);
             return `/api/img/${id}`;
         }
     }
@@ -96,12 +85,9 @@ async function saveImageToCloud(id: string, base64: string): Promise<string> {
 async function deleteImageFromCloud(url: string) {
     if (!url.startsWith('/api/img/')) return;
     const id = url.replace('/api/img/', '');
-    const kvUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-    const kvToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-    if (kvUrl && kvToken) {
-        await fetch(`${kvUrl}/del/img_${id}`, {
-            headers: { Authorization: `Bearer ${kvToken}` }
-        });
+    const redis = getRedisClient();
+    if (redis) {
+        await redis.del(`img_${id}`);
     }
 }
 

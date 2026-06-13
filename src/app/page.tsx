@@ -32,6 +32,7 @@ export default function HomePage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isNavbarHovered, setIsNavbarHovered] = useState(false);
+  const [scrolledMemoryId, setScrolledMemoryId] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -143,11 +144,14 @@ export default function HomePage() {
           m.content.toLowerCase().includes(searchQuery.toLowerCase()))
       );
       setCameraFocusId(matched ? matched.id : null);
+    } else if (notesView === 'timeline' && scrolledMemoryId) {
+      // 3. If in timeline view and scrolled to a specific note, focus on that note's star
+      setCameraFocusId(scrolledMemoryId);
     } else {
-      // 3. Otherwise, return to overview float
+      // 4. Otherwise, return to overview float
       setCameraFocusId(null);
     }
-  }, [searchQuery, memories, activeMemoryId]);
+  }, [searchQuery, memories, activeMemoryId, notesView, scrolledMemoryId]);
 
 
   const handleAdd = async (memoryData: { title: string; content: string; imageUrl?: string; imageUrls?: string[]; isGalleryOnly?: boolean; hideFromGallery?: boolean }) => {
@@ -328,672 +332,678 @@ export default function HomePage() {
         }}
       />
 
-        <div className="relative z-10 flex flex-col min-h-screen">
-          {/* Header */}
-          <AnimatePresence>
-            {!isHideHeader && (
-              <motion.header
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="relative z-10 pt-[max(3.5rem,env(safe-area-inset-top)+0.5rem)] pb-4 text-center px-6"
-              >
-                <AnimatePresence>
-                  {titleVisible && (
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Header */}
+        <AnimatePresence>
+          {!isHideHeader && (
+            <motion.header
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 pt-[max(3.5rem,env(safe-area-inset-top)+0.5rem)] pb-4 text-center px-6"
+            >
+              <AnimatePresence>
+                {titleVisible && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                  >
                     <motion.div
-                      initial={{ opacity: 0, y: -20 }}
+                      className="flex flex-col items-center justify-center"
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                      transition={{ delay: 0.5, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      <motion.div
-                        className="flex flex-col items-center justify-center"
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                      >
-                        {/* Celestial Orbit Divider */}
-                        <div className="flex items-center gap-4 mb-2 opacity-90">
-                          <span
-                            className="text-[10px] sm:text-[12px] uppercase tracking-[0.55em] text-white font-extralight ml-[0.25em]"
-                            style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
-                          >
-                            Life Journey
-                          </span>
-                        </div>
-
-                        {/* Starry Text */}
-                        <motion.p
-                          className="flex items-center justify-center gap-3 text-white/40 text-[11px] sm:text-[13px] font-light tracking-[0.2em] uppercase w-full max-w-2xl mx-auto"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.8, duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                      {/* Celestial Orbit Divider */}
+                      <div className="flex items-center gap-4 mb-2 opacity-90">
+                        <span
+                          className="text-[10px] sm:text-[12px] uppercase tracking-[0.55em] text-white font-extralight ml-[0.25em]"
+                          style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
                         >
-                        </motion.p>
+                          Life Journey
+                        </span>
+                      </div>
+
+                      {/* Starry Text */}
+                      <motion.p
+                        className="flex items-center justify-center gap-3 text-white/40 text-[11px] sm:text-[13px] font-light tracking-[0.2em] uppercase w-full max-w-2xl mx-auto"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8, duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                      >
+                      </motion.p>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.header>
+          )}
+        </AnimatePresence>
+
+        {/* Floating Apple-style Header (Dynamic Island) */}
+        <AnimatePresence>
+          {!isHideHeader && (
+            <motion.div
+              initial={{ y: -30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -30, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 26 }}
+              className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-3"
+            >
+              <motion.div
+                layout
+                onMouseLeave={() => setIsNavbarHovered(false)}
+                onClick={() => {
+                  if (isCollapsed) {
+                    setIsNavbarHovered(true);
+                  }
+                }}
+                className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-colors duration-300 max-w-[95vw] ${isSearchActive
+                  ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
+                  : isCollapsed
+                    ? 'w-auto h-[46px] bg-black/85 border-white/20 p-1 rounded-full cursor-pointer'
+                    : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
+                  }`}
+                transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.52 }}
+              >
+                <AnimatePresence mode="wait">
+                  {!isSearchActive ? (
+                    /* Standard mode (expanded / collapsed) */
+                    <motion.div
+                      key="nav-standard-flow"
+                      layout
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-center"
+                    >
+                      {/* Tabs switcher (Notes / Life Updates) */}
+                      <motion.div
+                        layout
+                        className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0"
+                      >
+                        <motion.button
+                          layout
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTab('memories');
+                          }}
+                          className="relative flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+                        >
+                          {activeTab === 'memories' && (
+                            <motion.div
+                              layoutId="active-tab"
+                              className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                              transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
+                            />
+                          )}
+                          <LayoutGrid size={13} className="relative z-10 text-white shrink-0" />
+                          <motion.span
+                            layout
+                            animate={{
+                              width: isCollapsed ? 0 : 'auto',
+                              opacity: isCollapsed ? 0 : 1,
+                              scale: isCollapsed ? 0.8 : 1,
+                            }}
+                            transition={{
+                              type: 'tween',
+                              ease: [0.25, 1, 0.25, 1],
+                              duration: 0.38
+                            }}
+                            className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-0"
+                          >
+                            <span className="ml-1 sm:ml-1.5">Notes</span>
+                          </motion.span>
+                        </motion.button>
+
+                        <motion.button
+                          layout
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTab('gallery');
+                          }}
+                          className="relative flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
+                        >
+                          {activeTab === 'gallery' && (
+                            <motion.div
+                              layoutId="active-tab"
+                              className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                              transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
+                            />
+                          )}
+                          <ImageIcon size={13} className="relative z-10 text-white shrink-0" />
+                          <motion.span
+                            layout
+                            animate={{
+                              width: isCollapsed ? 0 : 'auto',
+                              opacity: isCollapsed ? 0 : 1,
+                              scale: isCollapsed ? 0.8 : 1,
+                            }}
+                            transition={{
+                              type: 'tween',
+                              ease: [0.25, 1, 0.25, 1],
+                              duration: 0.38
+                            }}
+                            className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-0"
+                          >
+                            <span className="ml-1 sm:ml-1.5">Updates</span>
+                          </motion.span>
+                        </motion.button>
                       </motion.div>
+
+                      {/* Separator & Notes-only controls - only if activeTab is 'memories' AND not collapsed */}
+                      <motion.div
+                        layout
+                        animate={{
+                          width: (activeTab === 'memories' && !isCollapsed) ? 'auto' : 0,
+                          opacity: (activeTab === 'memories' && !isCollapsed) ? 1 : 0,
+                          scale: (activeTab === 'memories' && !isCollapsed) ? 1 : 0.95,
+                        }}
+                        transition={{
+                          type: 'tween',
+                          ease: [0.25, 1, 0.25, 1],
+                          duration: 0.38
+                        }}
+                        className="flex items-center gap-1 sm:gap-1.5 overflow-hidden shrink-0"
+                      >
+                        {/* Separator / Divider */}
+                        <motion.div layout className="w-px h-4 bg-white/15 self-center shrink-0 mx-0.5 sm:mx-1" />
+
+                        {/* View toggle: Grid / Timeline */}
+                        <motion.div layout className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
+                          <motion.button
+                            layout
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNotesView('grid');
+                            }}
+                            title="Grid view"
+                            className="relative p-1 sm:p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                          >
+                            {notesView === 'grid' && (
+                              <motion.div
+                                layoutId="active-view"
+                                className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                                transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
+                              />
+                            )}
+                            <LayoutGrid size={13} className="relative z-10 text-white" />
+                          </motion.button>
+                          <motion.button
+                            layout
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNotesView('timeline');
+                            }}
+                            title="Timeline view"
+                            className="relative p-1 sm:p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
+                          >
+                            {notesView === 'timeline' && (
+                              <motion.div
+                                layoutId="active-view"
+                                className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
+                                transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
+                              />
+                            )}
+                            <AlignLeft size={13} className="relative z-10 text-white" />
+                          </motion.button>
+                        </motion.div>
+
+                        {/* Sort toggle */}
+                        <motion.button
+                          layout
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'));
+                          }}
+                          title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
+                          className="relative flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0"
+                        >
+                          <ArrowUpDown size={11} className="text-white/60" />
+                          <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
+                        </motion.button>
+                      </motion.div>
+
+                      {/* Divider and Search Trigger Button */}
+                      <motion.div layout className="w-px h-4 bg-white/15 mx-1 sm:mx-2 shrink-0" />
+                      <motion.button
+                        layout
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsSearchActive(true);
+                        }}
+                        title="Cari memori..."
+                        className="relative flex items-center justify-center p-1.5 sm:p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0"
+                      >
+                        <Search size={12} />
+                        {searchQuery && (
+                          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                        )}
+                      </motion.button>
+
+                      {/* Divider and Theme Selector */}
+                      <motion.div layout className="w-px h-4 bg-white/15 mx-1 sm:mx-2 shrink-0" />
+                      <motion.button
+                        layout
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cycleTimeTheme();
+                        }}
+                        title="Change Sky Atmosphere"
+                        className="relative flex items-center justify-center p-1.5 sm:p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0 mr-1 ml-0.5"
+                      >
+                        {timeTheme === 'dawn' && <Sun size={12} className="text-amber-300 animate-pulse" />}
+                        {timeTheme === 'sunset' && <Sunset size={12} className="text-rose-400" />}
+                        {timeTheme === 'midnight' && <Moon size={12} className="text-indigo-200" />}
+                      </motion.button>
+                    </motion.div>
+                  ) : (
+                    /* Search state */
+                    <motion.div
+                      key="search-mode-content"
+                      layout
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-center gap-2 w-full animate-in fade-in-50 duration-200"
+                    >
+                      <Search size={13} className="text-white/40 shrink-0 ml-1" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Cari momen..."
+                        autoFocus
+                        className="w-full bg-transparent border-none text-xs text-white placeholder-white/30 focus:outline-none font-light py-1"
+                      />
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="p-1 text-white/40 hover:text-white/80 transition-colors cursor-pointer shrink-0"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                      <div className="w-px h-4 bg-white/15 shrink-0 mx-1" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsSearchActive(false);
+                          setSearchQuery('');
+                        }}
+                        className="text-[11px] font-medium text-white/50 hover:text-white transition-colors cursor-pointer shrink-0 mr-1"
+                      >
+                        Cancel
+                      </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </motion.header>
-            )}
-          </AnimatePresence>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Floating Apple-style Header (Dynamic Island) */}
-          <AnimatePresence>
-            {!isHideHeader && (
+        {/* Main Content Area */}
+        <section className="relative z-10 px-4 pb-safe max-w-4xl mx-auto" style={{ paddingBottom: 'max(8rem, calc(env(safe-area-inset-bottom) + 7rem))' }}>
+          <AnimatePresence mode="wait">
+            {activeTab === 'memories' ? (
               <motion.div
-                initial={{ y: -30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -30, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 26 }}
-                className="sticky top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none mb-3"
+                key="memories-main-view"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
               >
-                <motion.div
-                  layout
-                  onMouseLeave={() => setIsNavbarHovered(false)}
-                  onClick={() => {
-                    if (isCollapsed) {
-                      setIsNavbarHovered(true);
-                    }
-                  }}
-                  className={`pointer-events-auto flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl saturate-150 border transition-colors duration-300 max-w-[95vw] ${isSearchActive
-                      ? 'w-[90vw] max-w-[420px] h-[46px] justify-between bg-black/75 border-white/20 px-3 py-1 rounded-[22px]'
-                      : isCollapsed
-                        ? 'w-auto h-[46px] bg-black/85 border-white/20 p-1 rounded-full cursor-pointer'
-                        : 'w-auto h-[46px] bg-black/60 border-white/10 p-1 rounded-full'
-                    }`}
-                  transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.52 }}
-                >
-                  <AnimatePresence mode="wait">
-                    {!isSearchActive ? (
-                      /* Standard mode (expanded / collapsed) */
-                      <motion.div
-                        key="nav-standard-flow"
-                        layout
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ duration: 0.15 }}
-                        className="flex items-center"
-                      >
-                        {/* Tabs switcher (Notes / Life Updates) */}
-                        <motion.div
-                          layout
-                          className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0"
-                        >
-                          <motion.button
-                            layout
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveTab('memories');
-                            }}
-                            className="relative flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
-                          >
-                            {activeTab === 'memories' && (
-                              <motion.div
-                                layoutId="active-tab"
-                                className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
-                              />
-                            )}
-                            <LayoutGrid size={13} className="relative z-10 text-white shrink-0" />
-                            <motion.span
-                              layout
-                              animate={{
-                                width: isCollapsed ? 0 : 'auto',
-                                opacity: isCollapsed ? 0 : 1,
-                                scale: isCollapsed ? 0.8 : 1,
-                              }}
-                              transition={{
-                                type: 'tween',
-                                ease: [0.25, 1, 0.25, 1],
-                                duration: 0.38
-                              }}
-                              className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-0"
-                            >
-                              <span className="ml-1 sm:ml-1.5">Notes</span>
-                            </motion.span>
-                          </motion.button>
+                {filteredMemories.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex flex-col items-center justify-center py-20 px-6 text-center relative overflow-hidden"
+                  >
+                    {/* Ethereal background aura glow */}
+                    <div className="absolute w-48 h-48 rounded-full bg-violet-500/5 blur-[80px] pointer-events-none -z-10" />
 
-                          <motion.button
-                            layout
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveTab('gallery');
-                            }}
-                            className="relative flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer"
-                          >
-                            {activeTab === 'gallery' && (
-                              <motion.div
-                                layoutId="active-tab"
-                                className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
-                              />
-                            )}
-                            <ImageIcon size={13} className="relative z-10 text-white shrink-0" />
-                            <motion.span
-                              layout
-                              animate={{
-                                width: isCollapsed ? 0 : 'auto',
-                                opacity: isCollapsed ? 0 : 1,
-                                scale: isCollapsed ? 0.8 : 1,
-                              }}
-                              transition={{
-                                type: 'tween',
-                                ease: [0.25, 1, 0.25, 1],
-                                duration: 0.38
-                              }}
-                              className="relative z-10 text-white overflow-hidden whitespace-nowrap text-[10px] sm:text-xs font-medium ml-0"
-                            >
-                              <span className="ml-1 sm:ml-1.5">Updates</span>
-                            </motion.span>
-                          </motion.button>
-                        </motion.div>
+                    {/* Interactive Constellation SVG */}
+                    <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
+                      <svg width="120" height="120" viewBox="0 0 120 120" className="text-white/15">
+                        {/* Connection Lines */}
+                        <motion.line
+                          x1="20" y1="50" x2="50" y2="20"
+                          stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 2, delay: 0.5 }}
+                        />
+                        <motion.line
+                          x1="50" y1="20" x2="90" y2="40"
+                          stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 2.2, delay: 0.7 }}
+                        />
+                        <motion.line
+                          x1="90" y1="40" x2="70" y2="85"
+                          stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 2.5, delay: 0.9 }}
+                        />
+                        <motion.line
+                          x1="70" y1="85" x2="30" y2="90"
+                          stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 2, delay: 1.1 }}
+                        />
+                        <motion.line
+                          x1="30" y1="90" x2="20" y2="50"
+                          stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 2.3, delay: 1.3 }}
+                        />
 
-                        {/* Separator & Notes-only controls - only if activeTab is 'memories' AND not collapsed */}
+                        {/* Pulsing Constellation Stars */}
+                        <motion.circle
+                          cx="20" cy="50" r="3.5" fill="rgba(255,255,255,0.7)"
+                          animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+                          transition={{ repeat: Infinity, duration: 3, delay: 0.2 }}
+                        />
+                        <motion.circle
+                          cx="50" cy="20" r="4.5" fill="rgba(255,255,255,0.8)"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ repeat: Infinity, duration: 4.5, delay: 0.5 }}
+                        />
+                        <motion.circle
+                          cx="90" cy="40" r="3" fill="rgba(255,255,255,0.6)"
+                          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                          transition={{ repeat: Infinity, duration: 3.5, delay: 0.8 }}
+                        />
+                        <motion.circle
+                          cx="70" cy="85" r="4" fill="rgba(255,255,255,0.75)"
+                          animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+                          transition={{ repeat: Infinity, duration: 4, delay: 1.1 }}
+                        />
+                        <motion.circle
+                          cx="30" cy="90" r="3.5" fill="rgba(255,255,255,0.7)"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+                          transition={{ repeat: Infinity, duration: 3.8, delay: 1.4 }}
+                        />
+                      </svg>
+
+                      {/* Floating Center Nebula Glow */}
+                      <div className="absolute inset-0 flex items-center justify-center">
                         <motion.div
-                          layout
                           animate={{
-                            width: (activeTab === 'memories' && !isCollapsed) ? 'auto' : 0,
-                            opacity: (activeTab === 'memories' && !isCollapsed) ? 1 : 0,
-                            scale: (activeTab === 'memories' && !isCollapsed) ? 1 : 0.95,
+                            scale: [0.9, 1.1, 0.9],
+                            opacity: [0.2, 0.4, 0.2]
                           }}
                           transition={{
-                            type: 'tween',
-                            ease: [0.25, 1, 0.25, 1],
-                            duration: 0.38
+                            repeat: Infinity,
+                            duration: 5,
+                            ease: "easeInOut"
                           }}
-                          className="flex items-center gap-1 sm:gap-1.5 overflow-hidden shrink-0"
-                        >
-                          {/* Separator / Divider */}
-                          <motion.div layout className="w-px h-4 bg-white/15 self-center shrink-0 mx-0.5 sm:mx-1" />
-
-                          {/* View toggle: Grid / Timeline */}
-                          <motion.div layout className="relative flex bg-white/5 p-0.5 rounded-full border border-white/5 shrink-0">
-                            <motion.button
-                              layout
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setNotesView('grid');
-                              }}
-                              title="Grid view"
-                              className="relative p-1 sm:p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
-                            >
-                              {notesView === 'grid' && (
-                                <motion.div
-                                  layoutId="active-view"
-                                  className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                  transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
-                                />
-                              )}
-                              <LayoutGrid size={13} className="relative z-10 text-white" />
-                            </motion.button>
-                            <motion.button
-                              layout
-                              onClick={(e) => {
-                                  e.stopPropagation();
-                                  setNotesView('timeline');
-                              }}
-                              title="Timeline view"
-                              className="relative p-1 sm:p-1.5 rounded-full transition-colors duration-200 z-10 flex items-center justify-center cursor-pointer"
-                            >
-                              {notesView === 'timeline' && (
-                                <motion.div
-                                  layoutId="active-view"
-                                  className="absolute inset-0 bg-white/10 border border-white/5 rounded-full shadow-[0_2px_8px_rgba(255,255,255,0.05)]"
-                                  transition={{ type: 'tween', ease: [0.25, 1, 0.25, 1], duration: 0.38 }}
-                                />
-                              )}
-                              <AlignLeft size={13} className="relative z-10 text-white" />
-                            </motion.button>
-                          </motion.div>
-
-                          {/* Sort toggle */}
-                          <motion.button
-                            layout
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSortOrder((s) => (s === 'newest' ? 'oldest' : 'newest'));
-                            }}
-                            title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
-                            className="relative flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-xs font-medium text-white/60 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0"
-                          >
-                            <ArrowUpDown size={11} className="text-white/60" />
-                            <span className="hidden sm:inline">{sortOrder === 'newest' ? 'Newest' : 'Oldest'}</span>
-                          </motion.button>
-                        </motion.div>
-
-                        {/* Divider and Search Trigger Button */}
-                        <motion.div layout className="w-px h-4 bg-white/15 mx-1 sm:mx-2 shrink-0" />
-                        <motion.button
-                          layout
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsSearchActive(true);
-                          }}
-                          title="Cari memori..."
-                          className="relative flex items-center justify-center p-1.5 sm:p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0"
-                        >
-                          <Search size={12} />
-                          {searchQuery && (
-                            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                          )}
-                        </motion.button>
-
-                        {/* Divider and Theme Selector */}
-                        <motion.div layout className="w-px h-4 bg-white/15 mx-1 sm:mx-2 shrink-0" />
-                        <motion.button
-                          layout
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            cycleTimeTheme();
-                          }}
-                          title="Change Sky Atmosphere"
-                          className="relative flex items-center justify-center p-1.5 sm:p-2 bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 rounded-full text-white/70 hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 shrink-0 mr-1 ml-0.5"
-                        >
-                          {timeTheme === 'dawn' && <Sun size={12} className="text-amber-300 animate-pulse" />}
-                          {timeTheme === 'sunset' && <Sunset size={12} className="text-rose-400" />}
-                          {timeTheme === 'midnight' && <Moon size={12} className="text-indigo-200" />}
-                        </motion.button>
-                      </motion.div>
-                    ) : (
-                      /* Search state */
-                      <motion.div
-                        key="search-mode-content"
-                        layout
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ duration: 0.15 }}
-                        className="flex items-center gap-2 w-full animate-in fade-in-50 duration-200"
-                      >
-                        <Search size={13} className="text-white/40 shrink-0 ml-1" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Cari momen..."
-                          autoFocus
-                          className="w-full bg-transparent border-none text-xs text-white placeholder-white/30 focus:outline-none font-light py-1"
+                          className="w-16 h-16 rounded-full bg-indigo-500/20 blur-[15px]"
                         />
-                        {searchQuery && (
-                          <button
-                            onClick={() => setSearchQuery('')}
-                            className="p-1 text-white/40 hover:text-white/80 transition-colors cursor-pointer shrink-0"
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                        <div className="w-px h-4 bg-white/15 shrink-0 mx-1" />
+                      </div>
+                    </div>
+
+                    {/* Content copywriting */}
+                    <h3 className="font-serif text-white/80 text-base font-medium mb-2 tracking-wide">
+                      {searchQuery ? "No memories found" : "The memory sky is still empty"}
+                    </h3>
+                    <p className="text-white/40 text-xs max-w-[260px] leading-relaxed font-light font-sans">
+                      {searchQuery
+                        ? "Try searching with different keywords to find the moment you're looking for."
+                        : "Every story we share is precious. Tap the + button on the bottom left to write your first memory."
+                      }
+                    </p>
+                  </motion.div>
+                ) : notesView === 'grid' ? (
+                  /* ── GRID VIEW ── */
+                  <div className="columns-1 sm:columns-2 md:columns-3 gap-6 pt-4">
+                    {filteredMemories.map((memory, i) => (
+                      <MemoryCard
+                        key={memory.id}
+                        memory={memory}
+                        index={i}
+                        onDelete={handleDelete}
+                        onUpdate={handleUpdate}
+                        isInitialLoad={initialLoad}
+                        onFocusChange={setIsSpaceBlurred}
+                        onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
+                        isExpanded={activeMemoryId === memory.id}
+                        onClose={() => handleModalToggle(memory.id, false)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  /* ── TIMELINE VIEW ── */
+                  <div className="relative pt-4">
+                    {/* Vertical spine line */}
+                    <div className="absolute left-4 sm:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+
+                    {filteredMemories.map((memory, i) => {
+                      const isLeft = i % 2 === 0;
+                      return (
+                        <motion.div
+                          key={memory.id}
+                          initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: Math.min(i * 0.07, 0.5), duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                          onViewportEnter={() => {
+                            if (notesView === 'timeline') {
+                              setScrolledMemoryId(memory.id);
+                            }
+                          }}
+                          viewport={{ margin: "-30% 0px -30% 0px" }}
+                          className={`relative flex items-start mb-8 sm:mb-10 group ${isLeft
+                            ? 'flex-row pl-10 sm:pl-0 sm:pr-[calc(50%+1.5rem)]'
+                            : 'flex-row pl-10 sm:pl-[calc(50%+1.5rem)] sm:pr-0'
+                            }`}
+                        >
+                          {/* Timeline dot */}
+                          <div className={`absolute top-5 flex items-center justify-center z-10 ${isLeft
+                            ? 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
+                            : 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
+                            }`}>
+                            <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-white/40 shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:scale-125 group-hover:border-white/80 transition-all duration-500" />
+                          </div>
+
+                          {/* Horizontal constellation connector line */}
+                          <div className={`absolute top-[26px] hidden sm:block h-px w-6 bg-gradient-to-r transition-all duration-700 pointer-events-none ${isLeft
+                            ? 'right-0 from-white/25 to-transparent group-hover:from-white/60 group-hover:scale-x-125 origin-right'
+                            : 'left-0 from-transparent to-white/25 group-hover:to-white/60 group-hover:scale-x-125 origin-left'
+                            }`} />
+
+                          {/* Card */}
+                          <div className="w-full">
+                            <MemoryCard
+                              memory={memory}
+                              index={i}
+                              onDelete={handleDelete}
+                              onUpdate={handleUpdate}
+                              isInitialLoad={false}
+                              onFocusChange={setIsSpaceBlurred}
+                              onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
+                              isExpanded={activeMemoryId === memory.id}
+                              onClose={() => handleModalToggle(memory.id, false)}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="gallery-view"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex justify-between items-end mb-4 px-1">
+                  <p className="text-white/40 text-sm">{allImages.length} photos</p>
+                  <label className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors ${isUploadingGallery
+                    ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                    : 'bg-white/10 hover:bg-white/20 text-white shadow-lg'
+                    }`}>
+                    <Upload size={14} />
+                    {isUploadingGallery ? 'Uploading...' : 'Upload Photos'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      disabled={isUploadingGallery}
+                      onChange={handleGalleryUpload}
+                    />
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {allImages.length === 0 ? (
+                    <div className="col-span-full flex flex-col items-center justify-center py-24 text-center">
+                      <p className="text-white/40 text-sm">No images found.</p>
+                    </div>
+                  ) : (
+                    allImages.map((imgData, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: Math.min(i * 0.05, 0.5) }}
+                        className="aspect-square rounded-xl overflow-hidden border border-white/10 group cursor-pointer relative"
+                        onClick={() => setFullGalleryImage(imgData)}
+                      >
+                        <img src={imgData.url} alt="Gallery" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500" />
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setIsSearchActive(false);
-                            setSearchQuery('');
+                            if (confirm('Are you sure you want to delete this photo?')) {
+                              handleDeleteGalleryImage(imgData.memoryId, imgData.imageIndex);
+                            }
                           }}
-                          className="text-[11px] font-medium text-white/50 hover:text-white transition-colors cursor-pointer shrink-0 mr-1"
+                          className="absolute top-2 right-2 p-1.5 bg-black/50 text-white/70 hover:text-red-400 hover:bg-black/80 rounded-full backdrop-blur-md opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all z-10"
+                          aria-label="Delete from gallery"
                         >
-                          Cancel
+                          <Trash2 size={14} />
                         </button>
                       </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                    ))
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
+        </section>
 
-          {/* Main Content Area */}
-          <section className="relative z-10 px-4 pb-safe max-w-4xl mx-auto" style={{ paddingBottom: 'max(8rem, calc(env(safe-area-inset-bottom) + 7rem))' }}>
-            <AnimatePresence mode="wait">
-              {activeTab === 'memories' ? (
-                <motion.div
-                  key="memories-main-view"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {filteredMemories.length === 0 ? (
-                    <motion.div
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex flex-col items-center justify-center py-20 px-6 text-center relative overflow-hidden"
-                    >
-                      {/* Ethereal background aura glow */}
-                      <div className="absolute w-48 h-48 rounded-full bg-violet-500/5 blur-[80px] pointer-events-none -z-10" />
+        {/* Add Memory FAB */}
+        <AddMemoryModal onAdd={handleAdd} isVisible={!isHideHeader} onModalToggle={setIsAddModalOpen} />
 
-                      {/* Interactive Constellation SVG */}
-                      <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
-                        <svg width="120" height="120" viewBox="0 0 120 120" className="text-white/15">
-                          {/* Connection Lines */}
-                          <motion.line
-                            x1="20" y1="50" x2="50" y2="20"
-                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ duration: 2, delay: 0.5 }}
-                          />
-                          <motion.line
-                            x1="50" y1="20" x2="90" y2="40"
-                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ duration: 2.2, delay: 0.7 }}
-                          />
-                          <motion.line
-                            x1="90" y1="40" x2="70" y2="85"
-                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ duration: 2.5, delay: 0.9 }}
-                          />
-                          <motion.line
-                            x1="70" y1="85" x2="30" y2="90"
-                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ duration: 2, delay: 1.1 }}
-                          />
-                          <motion.line
-                            x1="30" y1="90" x2="20" y2="50"
-                            stroke="currentColor" strokeWidth="1" strokeDasharray="3 3"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ duration: 2.3, delay: 1.3 }}
-                          />
+        {/* Music Player */}
+        <AudioPlayer visible={!isHideHeader} />
 
-                          {/* Pulsing Constellation Stars */}
-                          <motion.circle
-                            cx="20" cy="50" r="3.5" fill="rgba(255,255,255,0.7)"
-                            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
-                            transition={{ repeat: Infinity, duration: 3, delay: 0.2 }}
-                          />
-                          <motion.circle
-                            cx="50" cy="20" r="4.5" fill="rgba(255,255,255,0.8)"
-                            animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                            transition={{ repeat: Infinity, duration: 4.5, delay: 0.5 }}
-                          />
-                          <motion.circle
-                            cx="90" cy="40" r="3" fill="rgba(255,255,255,0.6)"
-                            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                            transition={{ repeat: Infinity, duration: 3.5, delay: 0.8 }}
-                          />
-                          <motion.circle
-                            cx="70" cy="85" r="4" fill="rgba(255,255,255,0.75)"
-                            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
-                            transition={{ repeat: Infinity, duration: 4, delay: 1.1 }}
-                          />
-                          <motion.circle
-                            cx="30" cy="90" r="3.5" fill="rgba(255,255,255,0.7)"
-                            animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
-                            transition={{ repeat: Infinity, duration: 3.8, delay: 1.4 }}
-                          />
-                        </svg>
-
-                        {/* Floating Center Nebula Glow */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <motion.div
-                            animate={{
-                              scale: [0.9, 1.1, 0.9],
-                              opacity: [0.2, 0.4, 0.2]
-                            }}
-                            transition={{
-                              repeat: Infinity,
-                              duration: 5,
-                              ease: "easeInOut"
-                            }}
-                            className="w-16 h-16 rounded-full bg-indigo-500/20 blur-[15px]"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Content copywriting */}
-                      <h3 className="font-serif text-white/80 text-base font-medium mb-2 tracking-wide">
-                        {searchQuery ? "No memories found" : "The memory sky is still empty"}
-                      </h3>
-                      <p className="text-white/40 text-xs max-w-[260px] leading-relaxed font-light font-sans">
-                        {searchQuery
-                          ? "Try searching with different keywords to find the moment you're looking for."
-                          : "Every story we share is precious. Tap the + button on the bottom left to write your first memory."
-                        }
-                      </p>
-                    </motion.div>
-                  ) : notesView === 'grid' ? (
-                    /* ── GRID VIEW ── */
-                    <div className="columns-1 sm:columns-2 md:columns-3 gap-6 pt-4">
-                      {filteredMemories.map((memory, i) => (
-                        <MemoryCard
-                          key={memory.id}
-                          memory={memory}
-                          index={i}
-                          onDelete={handleDelete}
-                          onUpdate={handleUpdate}
-                          isInitialLoad={initialLoad}
-                          onFocusChange={setIsSpaceBlurred}
-                          onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
-                          isExpanded={activeMemoryId === memory.id}
-                          onClose={() => handleModalToggle(memory.id, false)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    /* ── TIMELINE VIEW ── */
-                    <div className="relative pt-4">
-                      {/* Vertical spine line */}
-                      <div className="absolute left-4 sm:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/15 to-transparent" />
-
-                      {filteredMemories.map((memory, i) => {
-                        const isLeft = i % 2 === 0;
-                        return (
-                          <motion.div
-                            key={memory.id}
-                            initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: Math.min(i * 0.07, 0.5), duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                            className={`relative flex items-start mb-8 sm:mb-10 group ${isLeft
-                              ? 'flex-row pl-10 sm:pl-0 sm:pr-[calc(50%+1.5rem)]'
-                              : 'flex-row pl-10 sm:pl-[calc(50%+1.5rem)] sm:pr-0'
-                              }`}
-                          >
-                            {/* Timeline dot */}
-                            <div className={`absolute top-5 flex items-center justify-center z-10 ${isLeft
-                              ? 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
-                              : 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
-                              }`}>
-                              <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-white/40 shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:scale-125 group-hover:border-white/80 transition-all duration-500" />
-                            </div>
-
-                            {/* Horizontal constellation connector line */}
-                            <div className={`absolute top-[26px] hidden sm:block h-px w-6 bg-gradient-to-r transition-all duration-700 pointer-events-none ${isLeft
-                              ? 'right-0 from-white/25 to-transparent group-hover:from-white/60 group-hover:scale-x-125 origin-right'
-                              : 'left-0 from-transparent to-white/25 group-hover:to-white/60 group-hover:scale-x-125 origin-left'
-                              }`} />
-
-                            {/* Card */}
-                            <div className="w-full">
-                              <MemoryCard
-                                memory={memory}
-                                index={i}
-                                onDelete={handleDelete}
-                                onUpdate={handleUpdate}
-                                isInitialLoad={false}
-                                onFocusChange={setIsSpaceBlurred}
-                                onModalToggle={(isOpen) => handleModalToggle(memory.id, isOpen)}
-                                isExpanded={activeMemoryId === memory.id}
-                                onClose={() => handleModalToggle(memory.id, false)}
-                              />
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="gallery-view"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="flex justify-between items-end mb-4 px-1">
-                    <p className="text-white/40 text-sm">{allImages.length} photos</p>
-                    <label className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors ${isUploadingGallery
-                      ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                      : 'bg-white/10 hover:bg-white/20 text-white shadow-lg'
-                      }`}>
-                      <Upload size={14} />
-                      {isUploadingGallery ? 'Uploading...' : 'Upload Photos'}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        disabled={isUploadingGallery}
-                        onChange={handleGalleryUpload}
-                      />
-                    </label>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {allImages.length === 0 ? (
-                      <div className="col-span-full flex flex-col items-center justify-center py-24 text-center">
-                        <p className="text-white/40 text-sm">No images found.</p>
-                      </div>
-                    ) : (
-                      allImages.map((imgData, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: Math.min(i * 0.05, 0.5) }}
-                          className="aspect-square rounded-xl overflow-hidden border border-white/10 group cursor-pointer relative"
-                          onClick={() => setFullGalleryImage(imgData)}
-                        >
-                          <img src={imgData.url} alt="Gallery" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500" />
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm('Are you sure you want to delete this photo?')) {
-                                handleDeleteGalleryImage(imgData.memoryId, imgData.imageIndex);
-                              }
-                            }}
-                            className="absolute top-2 right-2 p-1.5 bg-black/50 text-white/70 hover:text-red-400 hover:bg-black/80 rounded-full backdrop-blur-md opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all z-10"
-                            aria-label="Delete from gallery"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </motion.div>
-                      ))
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </section>
-
-          {/* Add Memory FAB */}
-          <AddMemoryModal onAdd={handleAdd} isVisible={!isHideHeader} onModalToggle={setIsAddModalOpen} />
-
-          {/* Music Player */}
-          <AudioPlayer visible={!isHideHeader} />
-
-          {/* Full Size Gallery Image Modal */}
-          <AnimatePresence>
-            {fullGalleryImage && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-lg"
-                onClick={() => setFullGalleryImage(null)}
+        {/* Full Size Gallery Image Modal */}
+        <AnimatePresence>
+          {fullGalleryImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-lg"
+              onClick={() => setFullGalleryImage(null)}
+            >
+              <button
+                onClick={(e) => { e.stopPropagation(); setFullGalleryImage(null); }}
+                className="absolute top-4 right-4 z-20 text-white/60 hover:text-white transition-colors bg-black/30 p-2 rounded-full backdrop-blur-md touch-target flex items-center justify-center"
+                aria-label="Close full size"
               >
+                <X size={20} />
+              </button>
+
+              {currentGalleryIndex > 0 && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); setFullGalleryImage(null); }}
-                  className="absolute top-4 right-4 z-20 text-white/60 hover:text-white transition-colors bg-black/30 p-2 rounded-full backdrop-blur-md touch-target flex items-center justify-center"
-                  aria-label="Close full size"
+                  onClick={handlePrevImage}
+                  className="absolute left-4 z-20 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 p-3 rounded-full backdrop-blur-md flex items-center justify-center"
                 >
-                  <X size={20} />
+                  <ChevronLeft size={24} />
                 </button>
+              )}
 
-                {currentGalleryIndex > 0 && (
-                  <button
-                    onClick={handlePrevImage}
-                    className="absolute left-4 z-20 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 p-3 rounded-full backdrop-blur-md flex items-center justify-center"
-                  >
-                    <ChevronLeft size={24} />
-                  </button>
+              {currentGalleryIndex < allImages.length - 1 && (
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 z-20 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 p-3 rounded-full backdrop-blur-md flex items-center justify-center"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              )}
+
+              <motion.div
+                key={fullGalleryImage.url} // Forces re-animation when image changes
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="relative w-full h-full p-4 sm:p-8 flex flex-col items-center justify-center touch-none"
+                onClick={(e) => e.stopPropagation()}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(e, { offset, velocity }) => {
+                  const swipe = Math.abs(offset.x) * velocity.x;
+                  if (swipe < -1000) {
+                    handleNextImage();
+                  } else if (swipe > 1000) {
+                    handlePrevImage();
+                  }
+                }}
+              >
+                <img
+                  src={fullGalleryImage.url}
+                  alt="Gallery Full Size"
+                  className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl cursor-grab active:cursor-grabbing mb-4 pointer-events-none"
+                />
+                {/* Swipe dots — visible on touch devices instead of arrows */}
+                {allImages.length > 1 && (
+                  <div className="swipe-hint items-center justify-center gap-1.5 mb-4">
+                    {allImages.map((_, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-full transition-all duration-300 ${i === currentGalleryIndex
+                          ? 'w-4 h-1.5 bg-white/80'
+                          : 'w-1.5 h-1.5 bg-white/30'
+                          }`}
+                      />
+                    ))}
+                  </div>
                 )}
-
-                {currentGalleryIndex < allImages.length - 1 && (
-                  <button
-                    onClick={handleNextImage}
-                    className="absolute right-4 z-20 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 p-3 rounded-full backdrop-blur-md flex items-center justify-center"
-                  >
-                    <ChevronRight size={24} />
-                  </button>
-                )}
-
-                <motion.div
-                  key={fullGalleryImage.url} // Forces re-animation when image changes
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="relative w-full h-full p-4 sm:p-8 flex flex-col items-center justify-center touch-none"
-                  onClick={(e) => e.stopPropagation()}
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.2}
-                  onDragEnd={(e, { offset, velocity }) => {
-                    const swipe = Math.abs(offset.x) * velocity.x;
-                    if (swipe < -1000) {
-                      handleNextImage();
-                    } else if (swipe > 1000) {
-                      handlePrevImage();
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm('Are you sure you want to delete this photo?')) {
+                      handleDeleteGalleryImage(fullGalleryImage.memoryId, fullGalleryImage.imageIndex);
                     }
                   }}
+                  className="bg-red-500/20 hover:bg-red-500/40 text-red-100 border border-red-500/30 backdrop-blur-md px-6 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-lg"
                 >
-                  <img
-                    src={fullGalleryImage.url}
-                    alt="Gallery Full Size"
-                    className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl cursor-grab active:cursor-grabbing mb-4 pointer-events-none"
-                  />
-                  {/* Swipe dots — visible on touch devices instead of arrows */}
-                  {allImages.length > 1 && (
-                    <div className="swipe-hint items-center justify-center gap-1.5 mb-4">
-                      {allImages.map((_, i) => (
-                        <div
-                          key={i}
-                          className={`rounded-full transition-all duration-300 ${i === currentGalleryIndex
-                              ? 'w-4 h-1.5 bg-white/80'
-                              : 'w-1.5 h-1.5 bg-white/30'
-                            }`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm('Are you sure you want to delete this photo?')) {
-                        handleDeleteGalleryImage(fullGalleryImage.memoryId, fullGalleryImage.imageIndex);
-                      }
-                    }}
-                    className="bg-red-500/20 hover:bg-red-500/40 text-red-100 border border-red-500/30 backdrop-blur-md px-6 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-lg"
-                  >
-                    <Trash2 size={16} />
-                    <span className="text-sm font-medium">Delete Photo</span>
-                  </button>
-                </motion.div>
+                  <Trash2 size={16} />
+                  <span className="text-sm font-medium">Delete Photo</span>
+                </button>
               </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </main>
   );
 }
