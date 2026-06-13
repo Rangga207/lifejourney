@@ -802,27 +802,21 @@ export default function HomePage() {
                             }
                           }}
                           viewport={{ margin: "-30% 0px -30% 0px" }}
-                          className={`relative flex items-start mb-8 sm:mb-10 group ${isLeft
-                            ? 'flex-row pl-10 sm:pl-0 sm:pr-[calc(50%+1.5rem)]'
-                            : 'flex-row pl-10 sm:pl-[calc(50%+1.5rem)] sm:pr-0'
-                            }`}
+                          className={`relative flex items-start mb-8 sm:mb-10 group w-full ${isLeft ? 'justify-start' : 'justify-start sm:justify-end'}`}
                         >
                           {/* Timeline dot */}
-                          <div className={`absolute top-5 flex items-center justify-center z-10 ${isLeft
-                            ? 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
-                            : 'left-[9px] sm:left-1/2 sm:-translate-x-1/2'
-                            }`}>
+                          <div className="absolute top-5 flex items-center justify-center z-10 left-[9px] sm:left-1/2 sm:-translate-x-1/2">
                             <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-white/40 shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:scale-125 group-hover:border-white/80 transition-all duration-500" />
                           </div>
 
                           {/* Horizontal constellation connector line */}
                           <div className={`absolute top-[26px] hidden sm:block h-px w-6 bg-gradient-to-r transition-all duration-700 pointer-events-none ${isLeft
-                            ? 'right-0 from-white/25 to-transparent group-hover:from-white/60 group-hover:scale-x-125 origin-right'
-                            : 'left-0 from-transparent to-white/25 group-hover:to-white/60 group-hover:scale-x-125 origin-left'
+                            ? 'right-[calc(50%+0.5rem)] from-white/25 to-transparent group-hover:from-white/60 group-hover:scale-x-125 origin-right'
+                            : 'left-[calc(50%+0.5rem)] from-transparent to-white/25 group-hover:to-white/60 group-hover:scale-x-125 origin-left'
                             }`} />
 
                           {/* Card */}
-                          <div className="w-full">
+                          <div className={`w-full sm:w-[calc(50%-1.5rem)] ${isLeft ? 'pl-10 sm:pl-0' : 'pl-10 sm:pl-0'}`}>
                             <MemoryCard
                               memory={memory}
                               index={i}
